@@ -92,6 +92,19 @@ const Sidebar = ({ sidebarId = 'sidebar' }) => {
             </li>
             <li className="mt-1">
               <Link
+                to="/recommendations"
+                className={`flex items-center w-full px-4 py-3 rounded-lg ${
+                  isActive('/recommendations')
+                    ? 'bg-indigo-100 text-indigo-700 font-medium'
+                    : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <i className="fas fa-lightbulb mr-3"></i>
+                <span>Recommendations</span>
+              </Link>
+            </li>
+            <li className="mt-1">
+              <Link
                 to="/profile"
                 className={`flex items-center w-full px-4 py-3 rounded-lg ${
                   isActive('/profile')

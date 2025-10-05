@@ -13,6 +13,7 @@ import GroupMoodPage from './pages/GroupMoodPage';
 import TrendsPage from './pages/TrendsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
+import RecommendationsPage from './pages/RecommendationsPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/trends" element={<TrendsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/recommendations" element={<RecommendationsPage />} />
         </Routes>
       </div>
     </Router>

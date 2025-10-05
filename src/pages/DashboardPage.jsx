@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
+import RecommendationsPanel from '../components/RecommendationsPanel';
 
 const DashboardPage = () => {
   const moodStats = [
@@ -74,30 +75,63 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h3 className="font-bold text-lg text-gray-800 mb-4">Recent Activity</h3>
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start">
-                  <div
-                    className={`w-8 h-8 rounded-full ${
-                      moodColors[activity.mood]
-                    } flex items-center justify-center mr-3 mt-1`}
-                  >
-                    <i className="fas fa-user text-sm"></i>
+          {/* Two Column Layout for Recent Activity and Recommendations */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Recent Activity */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="font-bold text-lg text-gray-800 mb-4">Recent Activity</h3>
+              <div className="space-y-4">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start">
+                    <div
+                      className={`w-8 h-8 rounded-full ${
+                        moodColors[activity.mood]
+                      } flex items-center justify-center mr-3 mt-1`}
+                    >
+                      <i className="fas fa-user text-sm"></i>
+                    </div>
+                    <div>
+                      <p className="text-sm">
+                        <span className="font-medium">{activity.name}</span> shared that they are feeling
+                        <span className="font-medium"> {activity.mood}</span> about {activity.message}.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm">
-                      <span className="font-medium">{activity.name}</span> shared that they are feeling
-                      <span className="font-medium"> {activity.mood}</span> about {activity.message}.
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                ))}
+              </div>
+            </div>
+
+            {/* Recommendations Summary */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="font-bold text-lg text-gray-800 mb-4">Your Recommendations</h3>
+              <div className="space-y-3">
+                <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                  <span className="text-2xl mr-3">🎯</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">Keep up the momentum!</p>
+                    <p className="text-xs text-gray-600 mt-1">Continue your current routine</p>
                   </div>
                 </div>
-              ))}
+                <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                  <span className="text-2xl mr-3">👥</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">Connect with your team</p>
+                    <p className="text-xs text-gray-600 mt-1">Check in with group members</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/recommendations'}
+                  className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium"
+                >
+                  View All Recommendations →
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Full Recommendations Panel */}
+          <RecommendationsPanel className="mb-8" />
         </main>
       </div>
     </div>
