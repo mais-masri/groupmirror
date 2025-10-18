@@ -1,8 +1,28 @@
 import api from './api';
 
+// Demo mode flag
+const DEMO_MODE = true;
+
 class AuthService {
   // User registration
   async register(userData) {
+    if (DEMO_MODE) {
+      // Demo mode - simulate successful registration
+      const { name, email, password } = userData;
+      const demoUser = {
+        id: 'demo-user-' + Date.now(),
+        name,
+        email,
+        token: 'demo-token-' + Date.now()
+      };
+      
+      // Store in localStorage
+      localStorage.setItem('token', demoUser.token);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      
+      return { success: true, user: demoUser, token: demoUser.token };
+    }
+    
     const { name, email, password } = userData;
     const result = await api.post('/api/auth/register', { name, email, password });
     return result.data;
@@ -10,6 +30,22 @@ class AuthService {
 
   // User login
   async login(email, password) {
+    if (DEMO_MODE) {
+      // Demo mode - simulate successful login
+      const demoUser = {
+        id: 'demo-user-' + Date.now(),
+        name: email.split('@')[0],
+        email,
+        token: 'demo-token-' + Date.now()
+      };
+      
+      // Store in localStorage
+      localStorage.setItem('token', demoUser.token);
+      localStorage.setItem('user', JSON.stringify(demoUser));
+      
+      return { success: true, user: demoUser, token: demoUser.token };
+    }
+    
     const result = await api.post('/api/auth/login', { email, password });
     return result.data;
   }
