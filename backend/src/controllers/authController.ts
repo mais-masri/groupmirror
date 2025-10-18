@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import { verifyToken } from '../utils/auth';
 
 // Mock user storage (in-memory for demo)
 const mockUsers: any[] = [];
@@ -188,7 +189,10 @@ export const verifyTokenMiddleware = async (req: Request, res: Response, next: N
     
     // Attach user to request
     req.user = {
-      id: decoded.userId
+      id: decoded.userId,
+      userId: decoded.userId,
+      email: decoded.email,
+      username: decoded.username
     };
 
     return next();

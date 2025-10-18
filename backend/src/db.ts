@@ -6,7 +6,7 @@ if (!uri) {
 }
 
 export async function connectDB() {
-  await mongoose.connect(uri, { dbName: "groupmirror" });
+  await mongoose.connect(uri as string, { dbName: "groupmirror" });
   console.log("✅ MongoDB connected:", mongoose.connection.host);
 }
 

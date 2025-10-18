@@ -1,4 +1,4 @@
-import { Schema, model, Types, InferSchemaType } from 'mongoose';
+import { Schema, model, Types, InferSchemaType, Document } from 'mongoose';
 
 const UserSchema = new Schema({
   username: { type: String, required: true, unique: true, trim: true, minlength: 3 },
@@ -8,5 +8,45 @@ const UserSchema = new Schema({
   lastName: { type: String, required: true, trim: true, minlength: 1 }
 }, { timestamps: true });
 
-export type UserDoc = InferSchemaType<typeof UserSchema> & { _id: Types.ObjectId };
+export interface UserDoc extends Document {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateUser {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface UpdateUser {
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface PublicUser {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UserPayload {
+  id: string;
+  email: string;
+  username: string;
+}
+
 export default model<UserDoc>('User', UserSchema);

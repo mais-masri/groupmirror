@@ -1,12 +1,13 @@
 import * as jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { User } from '../models';
+import User from '../models/User';
 
 // JWT Configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export interface JwtPayload {
+  id: string;
   userId: string;
   email: string;
   username: string;
