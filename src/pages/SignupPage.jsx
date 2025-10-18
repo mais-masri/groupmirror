@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/authService';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -7,21 +8,42 @@ const SignupPage = () => {
     email: '',
     password: ''
   });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // TODO: Add actual signup logic here
-    console.log('Signup attempt:', formData);
-    navigate('/dashboard');
+    setError('');
+
+    try {
+      const res = await registerUser(formData);
+      const token = res?.data?.token ?? res?.token;
+      if (!token) throw new Error('No token in response');
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(res?.data?.user ?? res?.user));
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err?.response?.data?.error || err.message || 'Registration failed. Please try again.');
+    }
   };
+
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
@@ -32,6 +54,11 @@ const SignupPage = () => {
         </div>
         <div className="bg-white rounded-b-2xl shadow-lg p-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">Create your account</h2>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSignup}>
             <div className="mb-4">
               <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-2">Full Name</label>

@@ -1,41 +1,77 @@
-import React from 'react';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const GroupSelectPage = () => {
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const fetchGroups = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/groups');
+      setGroups(response.data);
+    } catch (error) {
+      setError('Failed to load groups');
+      console.error('Error fetching groups:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGroupSelect = (groupId) => {
+    navigate(`/dashboard?group=${groupId}`);
+  };
+
+  if (loading) return <LoadingSpinner />;
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-6 bg-gray-50">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Choose Your Group</h2>
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow p-6">
-              <p className="mb-4">
-                Welcome, <span className="font-semibold">John Doe</span>
-              </p>
-              <div className="flex flex-wrap gap-4 mb-4">
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                  Enter Mood
-                </button>
-                <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                  History & Support
-                </button>
-              </div>
-              <input
-                type="text"
-                placeholder="Search group..."
-                className="w-full mb-4 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button className="w-full px-4 py-2 border rounded-lg hover:bg-gray-100">Team A</button>
-                <button className="w-full px-4 py-2 border rounded-lg hover:bg-gray-100">Team B</button>
-                <button className="w-full px-4 py-2 border rounded-lg hover:bg-gray-100">Team C</button>
-              </div>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Select a Group</h1>
+          
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
             </div>
-          </div>
-        </main>
+          )}
+
+          {groups.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No groups available</p>
+              <button
+                onClick={() => navigate('/groups')}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
+              >
+                Create a Group
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {groups.map((group) => (
+                <div
+                  key={group._id}
+                  onClick={() => handleGroupSelect(group._id)}
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <h3 className="font-semibold text-gray-900 mb-2">{group.name}</h3>
+                  <p className="text-gray-600 text-sm mb-3">{group.description}</p>
+                  <div className="text-xs text-gray-500">
+                    Members: {group.members?.length || 0}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

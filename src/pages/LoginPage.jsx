@@ -1,26 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/authService';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Add actual login logic here
-    console.log('Login attempt:', formData);
-    navigate('/dashboard');
+    setError('');
+
+    try {
+      const res = await loginUser(formData.email, formData.password);
+      const token = res?.data?.token ?? res?.token;
+      if (!token) throw new Error('No token in response');
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(res?.data?.user ?? res?.user));
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err?.response?.data?.error || err.message || 'Login failed. Please try again.');
+    }
   };
+
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
@@ -31,6 +53,11 @@ const LoginPage = () => {
         </div>
         <div className="bg-white rounded-b-2xl shadow-lg p-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6">Welcome back!</h2>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleLogin}>
             <div className="mb-4">
               <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-2">Email</label>

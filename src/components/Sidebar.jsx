@@ -12,14 +12,14 @@ const Sidebar = ({ sidebarId = 'sidebar' }) => {
       className="sidebar bg-white w-64 shadow-md md:shadow-none md:translate-x-0 hidden md:block"
     >
       <div className="p-4">
-        {/* User Info */}
+        {/* App Logo */}
         <div className="flex items-center mb-8">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-            JD
+            GM
           </div>
           <div className="ml-3">
-            <p className="font-medium">User</p>
-            <p className="text-xs text-gray-500">Admin</p>
+            <p className="font-bold text-lg text-gray-800">GroupMirror</p>
+            <p className="text-xs text-gray-500">Mood Tracking</p>
           </div>
         </div>
         {/* Navigation */}
@@ -40,15 +40,15 @@ const Sidebar = ({ sidebarId = 'sidebar' }) => {
             </li>
             <li className="mt-1">
               <Link
-                to="/select-group"
+                to="/groups"
                 className={`flex items-center w-full px-4 py-3 rounded-lg ${
-                  isActive('/select-group')
+                  isActive('/groups')
                     ? 'bg-indigo-100 text-indigo-700 font-medium'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
                 <i className="fas fa-layer-group mr-3"></i>
-                <span>Choose Group</span>
+                <span>Groups</span>
               </Link>
             </li>
             <li className="mt-1">
@@ -79,15 +79,15 @@ const Sidebar = ({ sidebarId = 'sidebar' }) => {
             </li>
             <li className="mt-1">
               <Link
-                to="/trends"
+                to="/group-chat"
                 className={`flex items-center w-full px-4 py-3 rounded-lg ${
-                  isActive('/trends')
+                  isActive('/group-chat')
                     ? 'bg-indigo-100 text-indigo-700 font-medium'
                     : 'hover:bg-gray-100 text-gray-700'
                 }`}
               >
-                <i className="fas fa-chart-line mr-3"></i>
-                <span>Trends</span>
+                <i className="fas fa-comments mr-3"></i>
+                <span>Group Chat</span>
               </Link>
             </li>
             <li className="mt-1">

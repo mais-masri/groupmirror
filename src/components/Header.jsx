@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '../services/authService';
 
 const Header = ({ sidebarToggleId = 'sidebar-toggle', sidebarId = 'sidebar' }) => {
   const navigate = useNavigate();
@@ -9,6 +10,11 @@ const Header = ({ sidebarToggleId = 'sidebar-toggle', sidebarId = 'sidebar' }) =
     if (sidebar) {
       sidebar.classList.toggle('open');
     }
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate('/');
   };
 
   return (
@@ -34,7 +40,7 @@ const Header = ({ sidebarToggleId = 'sidebar-toggle', sidebarId = 'sidebar' }) =
           </div>
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={handleLogout}
           className="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
           aria-label="Logout"
         >

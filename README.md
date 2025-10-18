@@ -1,70 +1,265 @@
-# Getting Started with Create React App
+# 🌟 GroupMirror
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**A collaborative mood tracking application for teams, families, and friend groups**
 
-## Available Scripts
+GroupMirror helps groups track their collective emotional well-being through shared mood entries, visualizations, and insights. Perfect for teams wanting to improve workplace culture, families staying connected, or friend groups supporting each other's mental health.
 
-In the project directory, you can run:
+![GroupMirror Demo](https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=GroupMirror+Demo)
 
-### `npm start`
+## ✨ Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🎯 Core Functionality
+- **Group Mood Tracking**: Create groups and track collective emotional states
+- **Individual Mood Entries**: 1-5 scale mood logging with optional notes
+- **Visual Analytics**: Interactive pie charts and mood calendars
+- **Trend Analysis**: Track mood patterns over time
+- **Real-time Updates**: See group mood changes as they happen
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 🔐 User Management
+- **Secure Authentication**: JWT-based login/signup system
+- **Protected Routes**: Secure access to group features
+- **User Profiles**: Personal dashboard and settings
+- **Group Management**: Create, join, and manage groups
 
-### `npm test`
+### 📊 Data Visualization
+- **Mood Calendar**: Visual calendar showing mood patterns
+- **Pie Charts**: Group mood distribution analytics
+- **Trends Page**: Historical mood data and insights
+- **Dashboard**: Personal and group mood statistics
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 Tech Stack
 
-### `npm run build`
+### Frontend
+- **React 18** with modern hooks
+- **React Router** for navigation
+- **Tailwind CSS** for styling
+- **Axios** for API communication
+- **Font Awesome** for icons
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Backend
+- **Node.js** with Express.js
+- **TypeScript** for type safety
+- **MongoDB** with Mongoose ODM
+- **JWT** for authentication
+- **Zod** for validation
+- **bcryptjs** for password hashing
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Development & Deployment
+- **Docker** for local development
+- **MongoDB Atlas** for production
+- **Render/Railway** ready for deployment
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📦 Installation
 
-### `npm run eject`
+### Prerequisites
+- Node.js 18+ 
+- MongoDB (local or Atlas)
+- Git
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Local Development Setup
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/groupmirror.git
+   cd groupmirror
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+2. **Install dependencies**
+   ```bash
+   # Install frontend dependencies
+   npm install
+   
+   # Install backend dependencies
+   cd backend
+   npm install
+   cd ..
+   ```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Set up environment variables**
+   
+   Create `.env` in the root directory:
+   ```env
+   REACT_APP_API_URL=http://localhost:3001
+   ```
+   
+   Create `.env` in the `backend/` directory:
+   ```env
+   PORT=3001
+   NODE_ENV=development
+   MONGO_URI=mongodb://localhost:27017/groupmirror
+   JWT_SECRET=your_jwt_secret_here_change_this_in_production
+   ```
 
-## Learn More
+4. **Start MongoDB** (using Docker)
+   ```bash
+   docker-compose up -d
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+5. **Run the application**
+   ```bash
+   # Terminal 1: Start backend
+   cd backend
+   npm run dev
+   
+   # Terminal 2: Start frontend
+   npm start
+   ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+6. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001
+   - Health Check: http://localhost:3001/health
 
-### Code Splitting
+## 🎮 Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Getting Started
+1. **Sign up** for a new account or **log in**
+2. **Create a group** or **join an existing group**
+3. **Start logging moods** daily (1-5 scale)
+4. **View group analytics** and trends
+5. **Support each other** through shared insights
 
-### Analyzing the Bundle Size
+### Key Pages
+- **Dashboard**: Personal mood overview and quick entry
+- **Group Mood**: Collective group mood visualization
+- **Trends**: Historical mood patterns and insights
+- **Calendar**: Visual mood calendar view
+- **Profile**: User settings and preferences
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 🚀 Deployment
 
-### Making a Progressive Web App
+### Production Build
+```bash
+# Frontend
+npm run build
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+# Backend
+cd backend
+npm run build
+npm start
+```
 
-### Advanced Configuration
+### Environment Variables for Production
+```env
+# Frontend
+REACT_APP_API_URL=https://your-backend-url.com
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+# Backend
+NODE_ENV=production
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/groupmirror
+JWT_SECRET=your_secure_jwt_secret_for_production
+```
 
-### Deployment
+### Deployment Platforms
+- **Render.com**: Full-stack deployment
+- **Railway**: Easy GitHub integration
+- **Vercel**: Frontend deployment
+- **MongoDB Atlas**: Database hosting
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
-### `npm run build` fails to minify
+## 📁 Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+groupmirror/
+├── src/                    # Frontend React app
+│   ├── components/         # Reusable UI components
+│   ├── pages/             # Page components
+│   ├── services/          # API service layer
+│   ├── contexts/          # React contexts
+│   └── utils/             # Utility functions
+├── backend/               # Backend Express API
+│   ├── src/
+│   │   ├── controllers/   # Route controllers
+│   │   ├── models/        # MongoDB models
+│   │   ├── routes/        # API routes
+│   │   ├── services/      # Business logic
+│   │   ├── middleware/    # Custom middleware
+│   │   └── validation/    # Input validation
+│   └── dist/              # Compiled TypeScript
+├── public/                # Static assets
+├── docker-compose.yml     # Local MongoDB setup
+└── package.json           # Frontend dependencies
+```
+
+## 🔧 Available Scripts
+
+### Frontend
+```bash
+npm start          # Start development server
+npm run build      # Build for production
+npm run preview    # Preview production build
+npm test           # Run tests
+```
+
+### Backend
+```bash
+npm run dev        # Start development server with hot reload
+npm run build      # Compile TypeScript
+npm start          # Start production server
+npm run seed       # Seed database with sample data
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 API Documentation
+
+### Authentication Endpoints
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile
+
+### Group Endpoints
+- `GET /api/groups` - List user's groups
+- `POST /api/groups` - Create new group
+- `GET /api/groups/:id` - Get group details
+- `GET /api/groups/:id/moods` - Get group moods
+
+### Mood Endpoints
+- `GET /api/moods` - Get user's moods
+- `POST /api/moods` - Create mood entry
+- `GET /api/moods/trends` - Get mood trends
+
+## 🐛 Known Issues
+
+- Backend TypeScript compilation errors in production build (dev mode works perfectly)
+- No automated tests (manual testing only)
+- Limited error handling in some edge cases
+
+## 🛠️ Future Enhancements
+
+- [ ] Real-time notifications
+- [ ] Mobile app (React Native)
+- [ ] Advanced analytics and insights
+- [ ] Mood reminders and streaks
+- [ ] Export mood data
+- [ ] Group chat integration
+- [ ] Mood-based recommendations
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Your Name**
+- GitHub: [@yourusername](https://github.com/yourusername)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+- Email: your.email@example.com
+
+## 🙏 Acknowledgments
+
+- React team for the amazing framework
+- Tailwind CSS for beautiful styling
+- MongoDB for the database solution
+- All contributors and testers
+
+---
+
+**Made with ❤️ for better group well-being**
