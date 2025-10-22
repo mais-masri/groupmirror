@@ -1,3 +1,7 @@
+/**
+ * MoodEntryPage - Calendar-based mood logging with date selection
+ * Users can log moods for past dates and view their mood history with calendar navigation
+ */
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
@@ -9,39 +13,42 @@ const MoodEntryPage = () => {
   const [message, setMessage] = useState('');
   const [moodData, setMoodData] = useState({});
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState('year'); // 'year', 'month', 'day'
 
-  // Generate demo mood data for the current year
-  const generateDemoMoodData = (year) => {
-    const demoData = {};
-    const today = new Date();
-    
-    // Generate moods for past days in the year
-    for (let month = 0; month < 12; month++) {
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      
-      for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        
-        // Only show data for past dates
-        if (date <= today) {
-          // 70% chance of having mood data for past dates
-          if (Math.random() > 0.3) {
-            const moodValues = [1, 2, 3, 4, 5];
-            const moodValue = moodValues[Math.floor(Math.random() * moodValues.length)];
-            const dateKey = `${year}-${month}-${day}`;
-            demoData[dateKey] = moodValue;
-          }
-        }
-      }
-    }
-    
-    return demoData;
-  };
 
   // Load mood data when component mounts or year changes
   useEffect(() => {
-    const demoData = generateDemoMoodData(currentYear);
-    setMoodData(demoData);
+    const loadMoodData = async () => {
+      try {
+        const moods = await moodService.getMoods(currentYear);
+        const moodDataMap = {};
+        
+        moods.forEach(mood => {
+          const date = new Date(mood.date);
+          const month = date.getMonth();
+          const day = date.getDate();
+          const year = date.getFullYear();
+          
+          if (year === currentYear) {
+            const dateKey = `${year}-${month}-${day}`;
+            moodDataMap[dateKey] = {
+              moodLevel: mood.moodLevel,
+              description: mood.description || ''
+            };
+          }
+        });
+        
+        setMoodData(moodDataMap);
+      } catch (error) {
+        console.error('Error loading mood data:', error);
+        // Start with empty data if API fails
+        setMoodData({});
+      }
+    };
+    
+    loadMoodData();
   }, [currentYear]);
 
   const moods = [
@@ -54,6 +61,14 @@ const MoodEntryPage = () => {
 
   const handleMoodSubmit = async () => {
     if (!selectedMood) return;
+
+    // Check if selected date is in the future
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // End of today
+    if (selectedDate > today) {
+      alert('Cannot log moods for future dates. Please select today or a previous day.');
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -68,36 +83,52 @@ const MoodEntryPage = () => {
 
       const moodData = {
         value: moodValueMapping[selectedMood.id],
-        note: message || ''
+        note: message || '',
+        date: selectedDate
       };
 
       try {
-        const response = await moodService.createMood(moodData.value, moodData.note);
+        const response = await moodService.createMood(moodData.value, moodData.note, moodData.date);
         
         if (response) {
           // Reset form
           setSelectedMood(null);
           setMessage('');
+          
+          // Refresh mood data to show the new entry
+          const moods = await moodService.getMoods(currentYear);
+          const moodDataMap = {};
+          
+          moods.forEach(mood => {
+            const date = new Date(mood.date);
+            const month = date.getMonth();
+            const day = date.getDate();
+            const year = date.getFullYear();
+            
+            if (year === currentYear) {
+              const dateKey = `${year}-${month}-${day}`;
+              moodDataMap[dateKey] = {
+                moodLevel: mood.moodLevel,
+                description: mood.description || ''
+              };
+            }
+          });
+          
+          setMoodData(moodDataMap);
+          
           // Show success message
           alert('Mood saved! Thanks for checking in. 💙');
         } else {
-          // API returned no response, but still show success in demo mode
-          setSelectedMood(null);
-          setMessage('');
-          alert('Mood logged! (Demo mode - API unavailable) 💙');
+          throw new Error('No response from API');
         }
       } catch (apiError) {
-        // API is down, but still show success in demo mode
-        console.log('API unavailable, logging mood in demo mode');
-        setSelectedMood(null);
-        setMessage('');
-        alert('Mood logged! (Demo mode - API unavailable) 💙');
+        console.error('API error:', apiError);
+        alert('Failed to save mood. Please try again.');
+        throw apiError;
       }
     } catch (error) {
       console.error('Mood submission error:', error);
-      alert('Mood logged! (Demo mode) 💙');
-      setSelectedMood(null);
-      setMessage('');
+      alert('Failed to save mood. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -125,6 +156,17 @@ const MoodEntryPage = () => {
       5: 'bg-yellow-400'   // Happy
     };
     return moodColors[moodValue] || 'bg-gray-200';
+  };
+
+  // Render calendar based on view mode
+  const renderCalendar = () => {
+    if (viewMode === 'year') {
+      return renderYearlyCalendar();
+    } else if (viewMode === 'month') {
+      return renderMonthlyCalendar();
+    } else {
+      return renderDailyView();
+    }
   };
 
   // Render yearly calendar
@@ -163,25 +205,33 @@ const MoodEntryPage = () => {
                   const today = new Date();
                   const isToday = date.toDateString() === today.toDateString();
                   const dateKey = `${currentYear}-${monthIndex}-${day}`;
-                  const moodValue = moodData[dateKey];
+                  const moodDataForDate = moodData[dateKey];
                   const isFuture = date > today;
                   
                   return (
                     <div
                       key={day}
-                      className={`term-8 flex items-center justify-center text-xs rounded ${
+                      className={`h-8 flex items-center justify-center text-xs rounded cursor-pointer ${
                         isToday 
                           ? 'bg-blue-200 border-2 border-blue-500 font-bold' 
-                          : moodValue 
-                            ? `${getMoodColor(moodValue)} text-white font-medium` 
+                          : moodDataForDate 
+                            ? `${getMoodColor(moodDataForDate.moodLevel)} text-white font-medium` 
                             : isFuture 
                               ? 'bg-gray-100 text-gray-400' 
                               : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                       }`}
-                      title={moodValue ? `Mood: ${moodValue}/5` : isFuture ? 'Future date' : 'No mood logged'}
+                      title={moodDataForDate ? 
+                        `Mood: ${moodDataForDate.moodLevel}/5${moodDataForDate.description ? ` - "${moodDataForDate.description}"` : ''}` : 
+                        isFuture ? 'Future date' : 'No mood logged'}
+                      onClick={() => {
+                        if (!isFuture) {
+                          setSelectedDate(date);
+                          setViewMode('day');
+                        }
+                      }}
                     >
-                      {moodValue ? (
-                        <span className="text-sm">{getMoodEmoji(moodValue)}</span>
+                      {moodDataForDate ? (
+                        <span className="text-sm">{getMoodEmoji(moodDataForDate.moodLevel)}</span>
                       ) : (
                         <span>{day}</span>
                       )}
@@ -192,6 +242,122 @@ const MoodEntryPage = () => {
             </div>
           );
         })}
+      </div>
+    );
+  };
+
+  // Render monthly calendar
+  const renderMonthlyCalendar = () => {
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+    const monthName = new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long' });
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">{monthName} {currentYear}</h3>
+        <div className="grid grid-cols-7 gap-2">
+          {/* Day headers */}
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="text-center font-medium text-gray-500 py-2 text-sm">
+              {day}
+            </div>
+          ))}
+          
+          {/* Empty cells for days before month starts */}
+          {Array.from({ length: firstDayOfMonth }, (_, i) => (
+            <div key={`empty-${i}`} className="h-12"></div>
+          ))}
+          
+          {/* Days of the month */}
+          {Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const date = new Date(currentYear, currentMonth, day);
+            const today = new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            const dateKey = `${currentYear}-${currentMonth}-${day}`;
+            const moodDataForDate = moodData[dateKey];
+            const isFuture = date > today;
+            
+            return (
+              <div
+                key={day}
+                className={`h-12 flex items-center justify-center text-sm rounded cursor-pointer transition-colors ${
+                  isToday 
+                    ? 'bg-blue-200 border-2 border-blue-500 font-bold' 
+                    : moodDataForDate 
+                      ? `${getMoodColor(moodDataForDate.moodLevel)} text-white font-medium` 
+                      : isFuture 
+                        ? 'bg-gray-100 text-gray-400' 
+                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+                title={moodDataForDate ? 
+                  `Mood: ${moodDataForDate.moodLevel}/5${moodDataForDate.description ? ` - "${moodDataForDate.description}"` : ''}` : 
+                  isFuture ? 'Future date' : 'No mood logged'}
+                onClick={() => {
+                  if (!isFuture) {
+                    setSelectedDate(date);
+                    setViewMode('day');
+                  }
+                }}
+              >
+                {moodDataForDate ? (
+                  <span className="text-lg">{getMoodEmoji(moodDataForDate.moodLevel)}</span>
+                ) : (
+                  <span>{day}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // Render daily view
+  const renderDailyView = () => {
+    const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`;
+    const moodDataForDate = moodData[dateKey];
+    const today = new Date();
+    const isFuture = selectedDate > today;
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+          {selectedDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </h3>
+        
+        <div className="flex items-center justify-center">
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl ${
+            moodDataForDate 
+              ? `${getMoodColor(moodDataForDate.moodLevel)} text-white` 
+              : isFuture 
+                ? 'bg-gray-200 text-gray-400' 
+                : 'bg-gray-100 text-gray-500'
+          }`}>
+            {moodDataForDate ? getMoodEmoji(moodDataForDate.moodLevel) : isFuture ? '🔒' : '📅'}
+          </div>
+        </div>
+        
+        <div className="text-center mt-4">
+          {moodDataForDate ? (
+            <div>
+              <p className="text-lg font-semibold text-gray-800">Mood Level: {moodDataForDate.moodLevel}/5</p>
+              {moodDataForDate.description && (
+                <p className="text-gray-600 mt-2 italic">"{moodDataForDate.description}"</p>
+              )}
+              <p className="text-gray-500 text-sm mt-2">Logged successfully</p>
+            </div>
+          ) : isFuture ? (
+            <p className="text-gray-500">Cannot log moods for future dates</p>
+          ) : (
+            <p className="text-gray-500">No mood logged for this day</p>
+          )}
+        </div>
       </div>
     );
   };
@@ -226,6 +392,26 @@ const MoodEntryPage = () => {
             ))}
           </div>
 
+          {/* Date Selection */}
+          {selectedMood && (
+            <div className="mb-6 bg-white rounded-xl p-6 shadow-sm">
+              <label htmlFor="date" className="block text-gray-700 text-sm font-medium mb-2">
+                Select Date for This Mood
+              </label>
+              <input
+                id="date"
+                type="date"
+                value={selectedDate.toISOString().split('T')[0]}
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                max={new Date().toISOString().split('T')[0]} // Prevent future dates
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                You can log moods for today or previous days, but not future dates.
+              </p>
+            </div>
+          )}
+
           {/* Optional Message */}
           {selectedMood && (
             <div className="mb-6 bg-white rounded-xl p-6 shadow-sm">
@@ -256,25 +442,93 @@ const MoodEntryPage = () => {
             </div>
           )}
 
-          {/* Yearly Calendar Section */}
+          {/* Calendar Section */}
           <div className="mt-12">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Your Yearly Mood Calendar</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Your Mood Calendar</h2>
               <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setCurrentYear(currentYear - 1)}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                >
-                  ← {currentYear - 1}
-                </button>
-                <span className="text-lg font-semibold text-gray-700">{currentYear}</span>
-                <button
-                  onClick={() => setCurrentYear(currentYear + 1)}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                  disabled={currentYear >= new Date().getFullYear()}
-                >
-                  {currentYear + 1} →
-                </button>
+                {/* View Mode Toggle */}
+                <div className="flex bg-gray-200 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('year')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      viewMode === 'year' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    Year
+                  </button>
+                  <button
+                    onClick={() => setViewMode('month')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      viewMode === 'month' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    Month
+                  </button>
+                  <button
+                    onClick={() => setViewMode('day')}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                      viewMode === 'day' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    Day
+                  </button>
+                </div>
+
+                {/* Navigation Controls */}
+                {viewMode === 'year' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentYear(currentYear - 1)}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                    >
+                      ← {currentYear - 1}
+                    </button>
+                    <span className="text-lg font-semibold text-gray-700">{currentYear}</span>
+                    <button
+                      onClick={() => setCurrentYear(currentYear + 1)}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                      disabled={currentYear >= new Date().getFullYear()}
+                    >
+                      {currentYear + 1} →
+                    </button>
+                  </div>
+                )}
+
+                {viewMode === 'month' && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        if (currentMonth === 0) {
+                          setCurrentMonth(11);
+                          setCurrentYear(currentYear - 1);
+                        } else {
+                          setCurrentMonth(currentMonth - 1);
+                        }
+                      }}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                    >
+                      ← Prev
+                    </button>
+                    <span className="text-lg font-semibold text-gray-700">
+                      {new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (currentMonth === 11) {
+                          setCurrentMonth(0);
+                          setCurrentYear(currentYear + 1);
+                        } else {
+                          setCurrentMonth(currentMonth + 1);
+                        }
+                      }}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                      disabled={currentYear >= new Date().getFullYear() && currentMonth >= new Date().getMonth()}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -310,7 +564,7 @@ const MoodEntryPage = () => {
             </div>
 
             {/* Calendar Grid */}
-            {renderYearlyCalendar()}
+            {renderCalendar()}
           </div>
 
         </main>

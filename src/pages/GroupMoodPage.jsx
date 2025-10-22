@@ -1,3 +1,7 @@
+/**
+ * GroupMoodPage - View group mood analytics and schedule support sessions
+ * Shows mood charts, statistics, and allows scheduling group support meetings
+ */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';

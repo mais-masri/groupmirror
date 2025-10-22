@@ -1,11 +1,15 @@
+/**
+ * MoodService - Handles all mood tracking API calls
+ * Creates, retrieves, and manages mood entries with date support
+ */
 import api from './api';
 
-// Demo mode flag
+// Demo mode disabled - use real API
 const DEMO_MODE = false;
 
 class MoodService {
   // Create mood entry
-  async createMood(value, note = '') {
+  async createMood(value, note = '', customDate = null) {
     try {
       // Validate input
       if (!value || value < 1 || value > 5) {
@@ -24,7 +28,30 @@ class MoodService {
         return demoMood;
       }
       
-      const result = await api.post('/api/moods', { value, note });
+      // Map mood value to mood type and level
+      const moodMapping = {
+        1: { moodType: 'Stressed', moodLevel: 1 },
+        2: { moodType: 'Sad', moodLevel: 2 },
+        3: { moodType: 'Neutral', moodLevel: 3 },
+        4: { moodType: 'Motivated', moodLevel: 4 },
+        5: { moodType: 'Happy', moodLevel: 5 }
+      };
+
+      const { moodType, moodLevel } = moodMapping[value];
+      
+      // Prepare request data
+      const requestData = { 
+        moodType, 
+        moodLevel, 
+        description: note 
+      };
+
+      // Add custom date if provided
+      if (customDate) {
+        requestData.date = customDate.toISOString();
+      }
+      
+      const result = await api.post('/api/moods', requestData);
       return result.data;
     } catch (error) {
       console.error('[MoodService] Error creating mood:', error);
@@ -33,7 +60,7 @@ class MoodService {
   }
 
   // Get user's moods
-  async getMoods(limit = 50) {
+  async getMoods(year = null) {
     try {
       if (DEMO_MODE) {
         // Demo mode - return sample moods
@@ -44,8 +71,13 @@ class MoodService {
         ];
       }
       
-      const result = await api.get(`/api/moods?limit=${limit}`);
-      return result.data;
+      let url = '/api/moods';
+      if (year) {
+        url += `?year=${year}`;
+      }
+      
+      const result = await api.get(url);
+      return result.data.data || [];
     } catch (error) {
       console.error('[MoodService] Error getting moods:', error);
       throw error;

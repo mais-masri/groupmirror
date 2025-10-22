@@ -1,252 +1,131 @@
-# 🌟 GroupMirror
+# ✨ GroupMirror - Your Personal & Collaborative Mood Tracker ✨
 
-**A collaborative mood tracking application for teams, families, and friend groups**
+Developed under the supervision of **Prof. Roi Poranne** at the University of Haifa 🎓
 
-GroupMirror helps groups track their collective emotional well-being through shared mood entries, visualizations, and insights. Perfect for teams wanting to improve workplace culture, families staying connected, or friend groups supporting each other's mental health.
+---
 
-![GroupMirror Demo](https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=GroupMirror+Demo)
+## 🚀 Project Overview
 
-## ✨ Features
+**GroupMirror** is a modern web-based mood tracking platform that connects individuals and groups for collaborative mental health support. Track your daily moods, create supportive communities, and foster emotional well-being together.
 
-### 🎯 Core Functionality
-- **Group Mood Tracking**: Create groups and track collective emotional states
-- **Individual Mood Entries**: 1-5 scale mood logging with optional notes
-- **Visual Analytics**: Interactive pie charts and mood calendars
-- **Trend Analysis**: Track mood patterns over time
-- **Real-time Updates**: See group mood changes as they happen
+---
 
-### 🔐 User Management
-- **Secure Authentication**: JWT-based login/signup system
-- **Protected Routes**: Secure access to group features
-- **User Profiles**: Personal dashboard and settings
-- **Group Management**: Create, join, and manage groups
+## 🌟 Key Features
 
-### 📊 Data Visualization
-- **Mood Calendar**: Visual calendar showing mood patterns
-- **Pie Charts**: Group mood distribution analytics
-- **Trends Page**: Historical mood data and insights
-- **Dashboard**: Personal and group mood statistics
+### 👤 **User Management**
+- 🔐 Secure authentication with comprehensive validation
+- 👋 Personalized dashboard with welcome messages
+- ✏️ Profile management (name, username, email)
+- 📊 Personal mood statistics and history
 
-## 🚀 Tech Stack
+### 😊 **Mood Tracking**
+- 📅 Calendar-based interface for logging moods
+- 🎭 Multiple mood types (Happy, Motivated, Neutral, Sad, Stressed)
+- 📝 Detailed entries with descriptions and levels (1-5 scale)
+- 📈 Visual history with yearly, monthly, and daily views
+- 🚫 Smart validation preventing future date entries
 
-### Frontend
-- **React 18** with modern hooks
-- **React Router** for navigation
-- **Tailwind CSS** for styling
-- **Axios** for API communication
-- **Font Awesome** for icons
+### 🤝 **Group Collaboration**
+- 🏗️ Create private groups with unique invite codes
+- 🔍 Real-time search functionality
+- 👥 Member management and group statistics
+- 💬 Group chat for emotional support
+- 📊 Live mood analytics and collective insights
 
-### Backend
-- **Node.js** with Express.js
-- **TypeScript** for type safety
-- **MongoDB** with Mongoose ODM
-- **JWT** for authentication
-- **Zod** for validation
-- **bcryptjs** for password hashing
+### ⚙️ **Customization**
+- 🔔 Notification management (push, email, group alerts)
+- 🎨 Light ☀️ and Dark 🌙 theme support
+- 🔒 Privacy controls and mood sharing settings
+- ⏰ Customizable reminder preferences
 
-### Development & Deployment
-- **Docker** for local development
-- **MongoDB Atlas** for production
-- **Render/Railway** ready for deployment
+---
 
-## 📦 Installation
+## 🛠️ Technologies
 
-### Prerequisites
-- Node.js 18+ 
-- MongoDB (local or Atlas)
-- Git
+| Frontend | Backend | Database |
+|----------|---------|----------|
+| ⚛️ React.js | 🟢 Node.js | 🍃 MongoDB |
+| 🎨 Tailwind CSS | 🚀 Express.js | 📊 Mongoose |
+| 📱 Responsive Design | 📘 TypeScript | 🔑 JWT Authentication |
 
-### Local Development Setup
+---
 
-1. **Clone the repository**
+## 🚀 Quick Start
+
+1. **Clone & Setup Backend**
    ```bash
-   git clone https://github.com/yourusername/groupmirror.git
-   cd groupmirror
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install frontend dependencies
+   git clone [repository_url]
+   cd groupmirrorproject/backend
    npm install
-   
-   # Install backend dependencies
-   cd backend
-   npm install
-   cd ..
-   ```
-
-3. **Set up environment variables**
-   
-   Create `.env` in the root directory:
-   ```env
-   REACT_APP_API_URL=http://localhost:3001
-   ```
-   
-   Create `.env` in the `backend/` directory:
-   ```env
-   PORT=3001
-   NODE_ENV=development
-   MONGO_URI=mongodb://localhost:27017/groupmirror
-   JWT_SECRET=your_jwt_secret_here_change_this_in_production
-   ```
-
-4. **Start MongoDB** (using Docker)
-   ```bash
-   docker-compose up -d
-   ```
-
-5. **Run the application**
-   ```bash
-   # Terminal 1: Start backend
-   cd backend
+   cp .env.example .env  # Configure MongoDB URI and JWT_SECRET
    npm run dev
-   
-   # Terminal 2: Start frontend
+   ```
+
+2. **Setup Frontend**
+   ```bash
+   cd ../src
+   npm install
+   cp .env.example .env  # Set REACT_APP_API_URL=http://localhost:3001
    npm start
    ```
 
-6. **Access the application**
+3. **Access Application**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-   - Health Check: http://localhost:3001/health
+   - Backend: http://localhost:3001
 
-## 🎮 Usage
-
-### Getting Started
-1. **Sign up** for a new account or **log in**
-2. **Create a group** or **join an existing group**
-3. **Start logging moods** daily (1-5 scale)
-4. **View group analytics** and trends
-5. **Support each other** through shared insights
-
-### Key Pages
-- **Dashboard**: Personal mood overview and quick entry
-- **Group Mood**: Collective group mood visualization
-- **Trends**: Historical mood patterns and insights
-- **Calendar**: Visual mood calendar view
-- **Profile**: User settings and preferences
-
-## 🚀 Deployment
-
-### Production Build
-```bash
-# Frontend
-npm run build
-
-# Backend
-cd backend
-npm run build
-npm start
-```
-
-### Environment Variables for Production
-```env
-# Frontend
-REACT_APP_API_URL=https://your-backend-url.com
-
-# Backend
-NODE_ENV=production
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/groupmirror
-JWT_SECRET=your_secure_jwt_secret_for_production
-```
-
-### Deployment Platforms
-- **Render.com**: Full-stack deployment
-- **Railway**: Easy GitHub integration
-- **Vercel**: Frontend deployment
-- **MongoDB Atlas**: Database hosting
-
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+---
 
 ## 📁 Project Structure
 
 ```
-groupmirror/
-├── src/                    # Frontend React app
-│   ├── components/         # Reusable UI components
-│   ├── pages/             # Page components
-│   ├── services/          # API service layer
-│   ├── contexts/          # React contexts
-│   └── utils/             # Utility functions
-├── backend/               # Backend Express API
-│   ├── src/
-│   │   ├── controllers/   # Route controllers
-│   │   ├── models/        # MongoDB models
-│   │   ├── routes/        # API routes
-│   │   ├── services/      # Business logic
-│   │   ├── middleware/    # Custom middleware
-│   │   └── validation/    # Input validation
-│   └── dist/              # Compiled TypeScript
-├── public/                # Static assets
-├── docker-compose.yml     # Local MongoDB setup
-└── package.json           # Frontend dependencies
+groupmirrorproject/
+├── 📁 backend/          # Node.js API server
+│   ├── 📁 src/routes/   # API endpoints
+│   ├── 📁 src/models/   # Database schemas
+│   └── 📁 src/middleware/ # Auth & validation
+├── 📁 src/              # React frontend
+│   ├── 📁 pages/        # Main application pages
+│   ├── 📁 components/   # Reusable UI components
+│   └── 📁 services/     # API service layers
+└── 📄 README.md
 ```
-
-## 🔧 Available Scripts
-
-### Frontend
-```bash
-npm start          # Start development server
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm test           # Run tests
-```
-
-### Backend
-```bash
-npm run dev        # Start development server with hot reload
-npm run build      # Compile TypeScript
-npm start          # Start production server
-npm run seed       # Seed database with sample data
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 API Documentation
-
-### Authentication Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/profile` - Get user profile
-
-### Group Endpoints
-- `GET /api/groups` - List user's groups
-- `POST /api/groups` - Create new group
-- `GET /api/groups/:id` - Get group details
-- `GET /api/groups/:id/moods` - Get group moods
-
-### Mood Endpoints
-- `GET /api/moods` - Get user's moods
-- `POST /api/moods` - Create mood entry
-- `GET /api/moods/trends` - Get mood trends
-
-## 🐛 Known Issues
-
-- Backend TypeScript compilation errors in production build (dev mode works perfectly)
-- No automated tests (manual testing only)
-- Limited error handling in some edge cases
-
-## 🛠️ Future Enhancements
-
-- [ ] Real-time notifications
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics and insights
-- [ ] Mood reminders and streaks
-- [ ] Export mood data
-- [ ] Group chat integration
-- [ ] Mood-based recommendations
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 
 ---
 
-**Made with ❤️ for better group well-being**
+## 🔧 Available Scripts
+
+**Backend:** `npm run dev` | `npm run build` | `npm run start`  
+**Frontend:** `npm start` | `npm run build` | `npm test`
+
+---
+
+## 🌐 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | User registration |
+| `/api/auth/login` | POST | User login |
+| `/api/moods` | GET/POST | Mood entries |
+| `/api/groups` | GET/POST | Group management |
+| `/api/profile` | GET/PUT | Profile management |
+| `/api/settings` | GET/PUT | Settings management |
+
+---
+
+## 🎯 Key Achievements
+
+- ✅ **Real-time Mood Tracking** with calendar interface
+- ✅ **Group Collaboration** with invite codes and search
+- ✅ **Theme Management** with light/dark mode
+- ✅ **Personalized Experience** with user-specific content
+- ✅ **Comprehensive Validation** on frontend and backend
+- ✅ **Database Integration** with MongoDB and Mongoose
+- ✅ **Secure Authentication** with JWT and bcrypt
+
+---
+
+<div align="center">
+
+**🌟 Developed with passion for better mental health tracking 🌟**
+
+</div>

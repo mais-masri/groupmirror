@@ -3,6 +3,10 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import moodRoutes from './routes/moods';
+import profileRoutes from './routes/profile';
+import settingsRoutes from './routes/settings';
+import groupRoutes from './routes/groups';
 
 // Load environment variables
 dotenv.config();
@@ -60,109 +64,10 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-
-// Mood endpoints
-app.get('/api/moods', (req, res) => {
-  // Mock mood data
-  const mockMoods = [
-    {
-      _id: 'mood-1',
-      rating: 4,
-      notes: 'Feeling good today!',
-      date: new Date().toISOString(),
-      userId: 'user-123'
-    },
-    {
-      _id: 'mood-2', 
-      rating: 3,
-      notes: 'Average day',
-      date: new Date(Date.now() - 86400000).toISOString(),
-      userId: 'user-123'
-    }
-  ];
-  
-  res.json({
-    success: true,
-    data: mockMoods
-  });
-});
-
-app.post('/api/moods', (req, res) => {
-  const { rating, notes } = req.body;
-  
-  if (!rating || rating < 1 || rating > 5) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'Rating must be between 1 and 5' 
-    });
-  }
-
-  const newMood = {
-    _id: 'mood-' + Date.now(),
-    rating: parseInt(rating),
-    notes: notes || '',
-    date: new Date().toISOString(),
-    userId: 'user-123'
-  };
-
-  return res.json({
-    success: true,
-    data: newMood
-  });
-});
-
-// Group endpoints
-app.get('/api/groups', (req, res) => {
-  // Mock group data
-  const mockGroups = [
-    {
-      _id: 'group-1',
-      name: 'Family Group',
-      description: 'Our family mood tracking',
-      members: ['user-123', 'user-456'],
-      owner: 'user-123',
-      isPrivate: false
-    },
-    {
-      _id: 'group-2',
-      name: 'Work Team',
-      description: 'Team wellness tracking',
-      members: ['user-123', 'user-789'],
-      owner: 'user-789',
-      isPrivate: true
-    }
-  ];
-  
-  res.json({
-    success: true,
-    data: mockGroups
-  });
-});
-
-app.post('/api/groups', (req, res) => {
-  const { name, description, isPrivate } = req.body;
-  
-  if (!name) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'Group name is required' 
-    });
-  }
-
-  const newGroup = {
-    _id: 'group-' + Date.now(),
-    name: name,
-    description: description || '',
-    members: ['user-123'],
-    owner: 'user-123',
-    isPrivate: isPrivate || false
-  };
-
-  return res.json({
-    success: true,
-    data: newGroup
-  });
-});
+app.use('/api/moods', moodRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Profile endpoints
 app.get('/api/profile', (req, res) => {
@@ -270,6 +175,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`😊 Mood endpoints: http://localhost:${PORT}/api/moods`);
   console.log(`👥 Group endpoints: http://localhost:${PORT}/api/groups`);
   console.log(`👤 Profile endpoints: http://localhost:${PORT}/api/profile`);
+  console.log(`⚙️ Settings endpoints: http://localhost:${PORT}/api/settings`);
   console.log(`🌐 Server accessible at: http://0.0.0.0:${PORT}`);
   
   // Connect to database in background

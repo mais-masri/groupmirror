@@ -4,6 +4,7 @@ import './App.css';
 
 // Import contexts
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Import pages
 import LoginPage from './pages/LoginPage';
@@ -41,75 +42,77 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <div id="app" className="min-h-screen flex flex-col">
-            {apiDown && (
-              <div className="bg-red-500 text-white text-center py-2 px-4 text-sm">
-                API is unreachable. Retrying...
-              </div>
-            )}
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            
-            {/* Protected routes */}
-            <Route path="/select-group" element={
-              <ProtectedRoute>
-                <GroupSelectPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/enter-mood" element={
-              <ProtectedRoute>
-                <MoodEntryPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/history-support" element={
-              <ProtectedRoute>
-                <HistorySupportPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/group-mood" element={
-              <ProtectedRoute>
-                <GroupMoodPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/group-chat" element={
-              <ProtectedRoute>
-                <GroupChatPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/groups" element={
-              <ProtectedRoute>
-                <GroupsPage />
-              </ProtectedRoute>
-            } />
-            
-            {/* Debug route */}
-            <Route path="/debug" element={<DebugPage />} />
-            
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <div id="app" className="min-h-screen flex flex-col">
+              {apiDown && (
+                <div className="bg-red-500 text-white text-center py-2 px-4 text-sm">
+                  API is unreachable. Retrying...
+                </div>
+              )}
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              
+              {/* Protected routes */}
+              <Route path="/select-group" element={
+                <ProtectedRoute>
+                  <GroupSelectPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/enter-mood" element={
+                <ProtectedRoute>
+                  <MoodEntryPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/history-support" element={
+                <ProtectedRoute>
+                  <HistorySupportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/group-mood" element={
+                <ProtectedRoute>
+                  <GroupMoodPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/group-chat" element={
+                <ProtectedRoute>
+                  <GroupChatPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/groups" element={
+                <ProtectedRoute>
+                  <GroupsPage />
+                </ProtectedRoute>
+              } />
+              
+              {/* Debug route */}
+              <Route path="/debug" element={<DebugPage />} />
+              
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            </div>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

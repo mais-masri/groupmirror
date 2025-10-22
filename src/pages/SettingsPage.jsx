@@ -1,30 +1,59 @@
+/**
+ * SettingsPage - Application preferences and user account settings
+ * Configure notifications, appearance, privacy settings, and theme preferences
+ */
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import settingsService from '../services/settingsService';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SettingsPage = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { theme, changeTheme } = useTheme();
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [settings, setSettings] = useState({
-    notifications: true,
+    // Notification Settings
+    pushNotifications: true,
     emailReminders: true,
     moodReminderTime: '20:00',
-    theme: 'light',
-    timezone: 'UTC'
+    weeklyReports: true,
+    groupNotifications: true,
+    
+    // Privacy Settings
+    profileVisibility: 'private',
+    moodSharing: false,
+    dataExport: true,
   });
 
   useEffect(() => {
-    // Get user info from localStorage
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await settingsService.getSettings();
+      if (response.success && response.data) {
+        setSettings(prev => ({
+          ...prev,
+          ...response.data
+        }));
+        // Update theme context if theme is set in backend
+        if (response.data.theme && response.data.theme !== theme) {
+          changeTheme(response.data.theme);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      // Continue with default settings if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSettingChange = (key, value) => {
     setSettings(prev => ({
@@ -33,36 +62,52 @@ const SettingsPage = () => {
     }));
   };
 
+  const handleThemeChange = (newTheme) => {
+    console.log('Changing theme to:', newTheme);
+    changeTheme(newTheme);
+    handleSettingChange('theme', newTheme);
+  };
+
   const handleSaveSettings = async () => {
     try {
       setSaving(true);
       setError('');
       setSuccess('');
       
-      // For now, just save to localStorage since we don't have backend settings endpoint
-      localStorage.setItem('userSettings', JSON.stringify(settings));
+      await settingsService.updateSettings({
+        ...settings,
+        theme: theme
+      });
       setSuccess('Settings saved successfully!');
     } catch (error) {
-      setError('Failed to save settings');
+      setError('Failed to save settings. Please try again.');
       console.error('Error saving settings:', error);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+  const handleResetSettings = async () => {
+    if (window.confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
       try {
-        setLoading(true);
-        await api.delete('/api/profile');
-        // Clear localStorage and redirect to login
-        localStorage.clear();
-        window.location.href = '/';
+        setSaving(true);
+        setError('');
+        setSuccess('');
+        
+        const response = await settingsService.resetSettings();
+        if (response.success) {
+          setSettings(prev => ({
+            ...prev,
+            ...response.data
+          }));
+          changeTheme('auto');
+          setSuccess('Settings reset to defaults successfully!');
+        }
       } catch (error) {
-        setError('Failed to delete account');
-        console.error('Error deleting account:', error);
+        setError('Failed to reset settings. Please try again.');
+        console.error('Error resetting settings:', error);
       } finally {
-        setLoading(false);
+        setSaving(false);
       }
     }
   };
@@ -73,7 +118,7 @@ const SettingsPage = () => {
         <Header />
         <div className="flex flex-1">
           <Sidebar />
-          <main className="flex-1 p-6 bg-gray-50 flex items-center justify-center">
+          <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
             <LoadingSpinner text="Loading settings..." />
           </main>
         </div>
@@ -86,65 +131,65 @@ const SettingsPage = () => {
       <Header />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-6 bg-gray-50">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Settings</h2>
+        <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Settings</h2>
+            <button
+              onClick={handleResetSettings}
+              disabled={saving}
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50"
+            >
+              Reset to Defaults
+            </button>
+          </div>
           
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div className="bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 px-4 py-3 rounded mb-4">
               {success}
             </div>
           )}
 
           <div className="space-y-6">
-            {/* Profile Information */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h3>
-              <div className="space-y-3">
+            {/* Theme Settings */}
+            <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">🎨 Appearance</h3>
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Theme
                   </label>
-                  <input
-                    type="text"
-                    value={user?.name || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                  />
+                  <select
+                    value={theme}
+                    onChange={(e) => handleThemeChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
                 </div>
               </div>
             </div>
 
             {/* Notification Settings */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Notifications</h3>
+            <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">🔔 Notifications</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">Push Notifications</h4>
-                    <p className="text-sm text-gray-500">Receive notifications about mood reminders</p>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Push Notifications</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive notifications about mood reminders</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={settings.notifications}
-                      onChange={(e) => handleSettingChange('notifications', e.target.checked)}
+                      checked={settings.pushNotifications}
+                      onChange={(e) => handleSettingChange('pushNotifications', e.target.checked)}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -153,8 +198,8 @@ const SettingsPage = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">Email Reminders</h4>
-                    <p className="text-sm text-gray-500">Receive email reminders for mood tracking</p>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Email Reminders</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive email reminders for mood tracking</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -167,54 +212,101 @@ const SettingsPage = () => {
                   </label>
                 </div>
 
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Weekly Reports</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive weekly mood summary reports</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.weeklyReports}
+                      onChange={(e) => handleSettingChange('weeklyReports', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Group Notifications</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive notifications from group activities</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.groupNotifications}
+                      onChange={(e) => handleSettingChange('groupNotifications', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Mood Reminder Time
                   </label>
                   <input
                     type="time"
                     value={settings.moodReminderTime}
                     onChange={(e) => handleSettingChange('moodReminderTime', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Appearance Settings */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Appearance</h3>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Theme
-                </label>
-                <select
-                  value={settings.theme}
-                  onChange={(e) => handleSettingChange('theme', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="auto">Auto</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Danger Zone */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-semibold text-red-600 mb-4">Danger Zone</h3>
+            {/* Privacy Settings */}
+            <div className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">🔒 Privacy</h3>
               <div className="space-y-4">
-                <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                  <h4 className="text-sm font-medium text-red-800 mb-2">Delete Account</h4>
-                  <p className="text-sm text-red-600 mb-3">
-                    Permanently delete your account and all associated data. This action cannot be undone.
-                  </p>
-                  <button
-                    onClick={handleDeleteAccount}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Profile Visibility
+                  </label>
+                  <select
+                    value={settings.profileVisibility}
+                    onChange={(e) => handleSettingChange('profileVisibility', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100"
                   >
-                    Delete Account
-                  </button>
+                    <option value="private">Private</option>
+                    <option value="friends">Friends Only</option>
+                    <option value="public">Public</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Mood Sharing</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Allow sharing mood data with friends</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.moodSharing}
+                      onChange={(e) => handleSettingChange('moodSharing', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Data Export</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Allow exporting your mood data</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.dataExport}
+                      onChange={(e) => handleSettingChange('dataExport', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
               </div>
             </div>

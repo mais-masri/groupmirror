@@ -1,34 +1,47 @@
+/**
+ * DashboardPage - Main home page showing today's mood and personalized welcome
+ * Displays user's current mood status and provides quick access to mood updates
+ */
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import MoodAlerts from '../components/MoodAlerts';
 import { getMoods } from '../services/moodService';
+import profileService from '../services/profileService';
 
 const DashboardPage = () => {
   const [todaysMood, setTodaysMood] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadTodaysMood();
+    loadDashboardData();
   }, []);
 
-  const loadTodaysMood = async () => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
+      // Load both user profile and today's mood in parallel
+      const [profileData, moodData] = await Promise.all([
+        profileService.getProfile(),
+        getMoods()
+      ]);
+      
+      setUserProfile(profileData.data);
+      
       // Get today's mood entry
       const today = new Date().toDateString();
-      const moodData = await getMoods('1d');
       const todaysEntry = moodData.find(mood => 
-        new Date(mood.createdAt).toDateString() === today
+        new Date(mood.date).toDateString() === today
       );
       setTodaysMood(todaysEntry || null);
     } catch (err) {
-      console.error('Error loading today\'s mood:', err);
+      console.error('Error loading dashboard data:', err);
       // For demo purposes, set a sample mood
       setTodaysMood({
-        value: 4,
-        note: 'Feeling motivated today!',
-        createdAt: new Date().toISOString()
+        moodLevel: 4,
+        description: 'Feeling motivated today!',
+        date: new Date().toISOString()
       });
     } finally {
       setLoading(false);
@@ -46,7 +59,7 @@ const DashboardPage = () => {
     return moods[moodValue] || moods[3];
   };
 
-  const moodInfo = todaysMood ? getMoodInfo(todaysMood.value) : null;
+  const moodInfo = todaysMood ? getMoodInfo(todaysMood.moodLevel) : null;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -55,7 +68,9 @@ const DashboardPage = () => {
         <Sidebar />
         <main className="flex-1 p-6 bg-gray-50">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Welcome back!</h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              Welcome back{userProfile?.firstName ? `, ${userProfile.firstName}` : ''}!
+            </h2>
           </div>
 
           {/* Today's Mood Section */}
@@ -76,16 +91,16 @@ const DashboardPage = () => {
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="text-xl font-bold text-gray-800">{moodInfo.label}</h4>
                       <span className="text-sm text-gray-500 font-medium">
-                        {new Date(todaysMood.createdAt).toLocaleDateString('en-US', { 
+                        {new Date(todaysMood.date).toLocaleDateString('en-US', { 
                           weekday: 'short', 
                           month: 'short', 
                           day: 'numeric' 
                         })}
                       </span>
                     </div>
-                    <p className="text-gray-600">Mood Level: {todaysMood.value}/5</p>
-                    {todaysMood.note && (
-                      <p className="text-gray-700 mt-1 italic">"{todaysMood.note}"</p>
+                    <p className="text-gray-600">Mood Level: {todaysMood.moodLevel}/5</p>
+                    {todaysMood.description && (
+                      <p className="text-gray-700 mt-1 italic">"{todaysMood.description}"</p>
                     )}
                   </div>
                   <button

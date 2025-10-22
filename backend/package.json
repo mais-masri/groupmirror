@@ -5,9 +5,11 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "cross-env TS_NODE_TRANSPILE_ONLY=1 nodemon --watch src --ext ts,js --exec \"node -r dotenv/config -r ts-node/register src/server.ts\"",
+    "dev:mock": "node mock-server.js",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
+    "start:mock": "node mock-server.js",
     "start:open": "npm run build && node dist/server.js & start http://localhost:3001/api/docs",
     "seed": "ts-node src/scripts/seed.ts",
     "health": "powershell -NoProfile -Command \"(Invoke-WebRequest -UseBasicParsing http://localhost:3001/api/health).StatusCode\"",

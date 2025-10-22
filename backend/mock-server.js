@@ -1,7 +1,16 @@
+/**
+ * Mock Server for Development and Testing
+ * 
+ * This is a lightweight mock server for:
+ * - Frontend development without backend dependencies
+ * - Testing API integrations
+ * - Quick prototyping
+ * 
+ * Usage: node mock-server.js
+ */
+
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,48 +22,22 @@ app.use(cors({
   credentials: true
 }));
 
-// MongoDB connection
-async function connectDB() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.log('⚠️  MONGODB_URI not found, running without database');
-    return;
-  }
-
-  try {
-    await mongoose.connect(uri, { 
-      dbName: 'groupmirror', 
-      serverSelectionTimeoutMS: 8000 
-    });
-    console.log('✅ [DB] Connected to MongoDB');
-  } catch (err) {
-    console.error('❌ [DB] Connection failed:', err);
-    console.log('⚠️  Continuing without database connection');
-  }
-}
-
 // Health endpoints
 app.get('/health', (req, res) => {
-  const dbStatus = mongoose.connection.readyState;
-  const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
-  
   res.json({ 
     ok: true,
-    env: process.env.NODE_ENV || 'development',
+    message: 'Mock server is working!',
     port: PORT,
-    database: {
-      status: dbStates[dbStatus] || 'unknown',
-      readyState: dbStatus
-    },
+    mode: 'mock',
     timestamp: new Date().toISOString()
   });
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, mode: 'mock' });
 });
 
-// Authentication endpoints
+// Mock Authentication endpoints
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   
@@ -65,16 +48,15 @@ app.post('/api/auth/login', (req, res) => {
     });
   }
 
-  const mockToken = 'jwt-token-' + Date.now();
   res.json({
     success: true,
-    token: mockToken,
+    token: 'mock-jwt-token-' + Date.now(),
     user: {
-      id: 'user-123',
+      id: 'mock-user-123',
       email: email,
       username: email.split('@')[0],
-      firstName: 'John',
-      lastName: 'Doe'
+      firstName: 'Mock',
+      lastName: 'User'
     }
   });
 });
@@ -89,36 +71,42 @@ app.post('/api/auth/register', (req, res) => {
     });
   }
 
-  const mockToken = 'jwt-token-' + Date.now();
   res.json({
     success: true,
-    token: mockToken,
+    token: 'mock-jwt-token-' + Date.now(),
     user: {
-      id: 'user-' + Date.now(),
+      id: 'mock-user-' + Date.now(),
       email: email,
       username: username,
-      firstName: firstName || 'User',
-      lastName: lastName || 'Name'
+      firstName: firstName || 'Mock',
+      lastName: lastName || 'User'
     }
   });
 });
 
-// Mood endpoints
+// Mock Mood endpoints
 app.get('/api/moods', (req, res) => {
   const mockMoods = [
     {
-      _id: 'mood-1',
+      _id: 'mock-mood-1',
       rating: 4,
-      notes: 'Feeling good today!',
+      notes: 'Feeling great!',
       date: new Date().toISOString(),
-      userId: 'user-123'
+      userId: 'mock-user-123'
     },
     {
-      _id: 'mood-2', 
+      _id: 'mock-mood-2', 
       rating: 3,
-      notes: 'Average day',
+      notes: 'Pretty good day',
       date: new Date(Date.now() - 86400000).toISOString(),
-      userId: 'user-123'
+      userId: 'mock-user-123'
+    },
+    {
+      _id: 'mock-mood-3',
+      rating: 5,
+      notes: 'Amazing day!',
+      date: new Date(Date.now() - 172800000).toISOString(),
+      userId: 'mock-user-123'
     }
   ];
   
@@ -139,11 +127,11 @@ app.post('/api/moods', (req, res) => {
   }
 
   const newMood = {
-    _id: 'mood-' + Date.now(),
+    _id: 'mock-mood-' + Date.now(),
     rating: parseInt(rating),
     notes: notes || '',
     date: new Date().toISOString(),
-    userId: 'user-123'
+    userId: 'mock-user-123'
   };
 
   res.json({
@@ -152,24 +140,26 @@ app.post('/api/moods', (req, res) => {
   });
 });
 
-// Group endpoints
+// Mock Group endpoints
 app.get('/api/groups', (req, res) => {
   const mockGroups = [
     {
-      _id: 'group-1',
+      _id: 'mock-group-1',
       name: 'Family Group',
       description: 'Our family mood tracking',
-      members: ['user-123', 'user-456'],
-      owner: 'user-123',
-      isPrivate: false
+      members: ['mock-user-123', 'mock-user-456'],
+      owner: 'mock-user-123',
+      isPrivate: false,
+      createdAt: new Date().toISOString()
     },
     {
-      _id: 'group-2',
+      _id: 'mock-group-2',
       name: 'Work Team',
       description: 'Team wellness tracking',
-      members: ['user-123', 'user-789'],
-      owner: 'user-789',
-      isPrivate: true
+      members: ['mock-user-123', 'mock-user-789'],
+      owner: 'mock-user-789',
+      isPrivate: true,
+      createdAt: new Date().toISOString()
     }
   ];
   
@@ -190,12 +180,13 @@ app.post('/api/groups', (req, res) => {
   }
 
   const newGroup = {
-    _id: 'group-' + Date.now(),
+    _id: 'mock-group-' + Date.now(),
     name: name,
     description: description || '',
-    members: ['user-123'],
-    owner: 'user-123',
-    isPrivate: isPrivate || false
+    members: ['mock-user-123'],
+    owner: 'mock-user-123',
+    isPrivate: isPrivate || false,
+    createdAt: new Date().toISOString()
   };
 
   res.json({
@@ -204,16 +195,16 @@ app.post('/api/groups', (req, res) => {
   });
 });
 
-// Profile endpoints
+// Mock Profile endpoints
 app.get('/api/profile', (req, res) => {
   res.json({
     success: true,
     data: {
-      id: 'user-123',
-      email: 'user@example.com',
-      username: 'testuser',
-      firstName: 'John',
-      lastName: 'Doe',
+      id: 'mock-user-123',
+      email: 'mock@example.com',
+      username: 'mockuser',
+      firstName: 'Mock',
+      lastName: 'User',
       createdAt: new Date().toISOString()
     }
   });
@@ -225,11 +216,11 @@ app.put('/api/profile', (req, res) => {
   res.json({
     success: true,
     data: {
-      id: 'user-123',
-      email: 'user@example.com',
-      username: username || 'testuser',
-      firstName: firstName || 'John',
-      lastName: lastName || 'Doe',
+      id: 'mock-user-123',
+      email: 'mock@example.com',
+      username: username || 'mockuser',
+      firstName: firstName || 'Mock',
+      lastName: lastName || 'User',
       updatedAt: new Date().toISOString()
     }
   });
@@ -239,15 +230,17 @@ app.put('/api/profile', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Welcome to Group Mirror API',
+    message: 'Group Mirror Mock API',
     version: '1.0.0',
+    mode: 'mock',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
       moods: '/api/moods',
       groups: '/api/groups',
       profile: '/api/profile'
-    }
+    },
+    note: 'This is a mock server for development and testing'
   });
 });
 
@@ -256,43 +249,43 @@ app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
-    path: req.originalUrl
+    path: req.originalUrl,
+    mode: 'mock'
   });
 });
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('Mock server error:', err);
   res.status(500).json({
     success: false,
     message: 'Internal server error',
+    mode: 'mock',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 });
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`🚀 [API] Server running on port ${PORT}`);
+  console.log(`🚀 [MOCK] Server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
   console.log(`😊 Mood endpoints: http://localhost:${PORT}/api/moods`);
   console.log(`👥 Group endpoints: http://localhost:${PORT}/api/groups`);
   console.log(`👤 Profile endpoints: http://localhost:${PORT}/api/profile`);
-  
-  // Connect to database in background
-  connectDB().catch(() => {
-    console.log('⚠️  Database connection failed, but server is running');
-  });
+  console.log(`⚠️  This is a MOCK server - no real data persistence`);
 });
 
 // Handle server errors
 server.on('error', (err) => {
-  console.error('❌ Server error:', err);
+  console.error('❌ Mock server error:', err);
   if (err.code === 'EADDRINUSE') {
     console.log(`❌ Port ${PORT} is already in use. Trying port ${PORT + 1}...`);
     const newPort = PORT + 1;
     app.listen(newPort, () => {
-      console.log(`🚀 [API] Server running on port ${newPort}`);
+      console.log(`🚀 [MOCK] Server running on port ${newPort}`);
     });
   }
 });
+
+console.log('Starting mock server...');

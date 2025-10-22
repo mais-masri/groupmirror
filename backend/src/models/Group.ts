@@ -1,14 +1,56 @@
-import { Schema, model, Types, InferSchemaType } from 'mongoose';
+/**
+ * Group Model - Database schema for mood tracking groups
+ * Stores group information for mutual support and mood sharing
+ */
+import mongoose, { Schema, Document } from 'mongoose';
 
-const GroupSchema = new Schema({
-  name: { type: String, required: true, trim: true },
-  description: { type: String, default: '' },
-  owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  members: [{ type: Schema.Types.ObjectId, ref: 'User', index: true }],
-  isPrivate: { type: Boolean, default: false }
-}, { timestamps: true });
+export interface IGroup extends Document {
+  name: string;
+  description: string;
+  adminId: mongoose.Schema.Types.ObjectId;
+  members: mongoose.Schema.Types.ObjectId[];
+  inviteCode: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-GroupSchema.index({ owner: 1, name: 1 }, { unique: true });
+const GroupSchema: Schema = new Schema({
+  name: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    maxlength: 100 
+  },
+  description: { 
+    type: String, 
+    trim: true, 
+    maxlength: 500 
+  },
+  adminId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  members: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  }],
+  inviteCode: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    uppercase: true 
+  },
+  isActive: { 
+    type: Boolean, 
+    default: true 
+  },
+}, { 
+  timestamps: true 
+});
 
-export type GroupDoc = InferSchemaType<typeof GroupSchema> & { _id: Types.ObjectId };
-export default model<GroupDoc>('Group', GroupSchema);
+// Ensure invite code is unique
+GroupSchema.index({ inviteCode: 1 }, { unique: true });
+
+export default mongoose.model<IGroup>('Group', GroupSchema);

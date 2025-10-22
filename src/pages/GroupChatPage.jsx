@@ -1,7 +1,9 @@
+/**
+ * GroupChatPage - Real-time group chat for mood support
+ * Members can chat, share mood updates, and offer emotional support
+ */
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getGroupMoods } from '../services/moodService';
-import { getGroupMembers } from '../services/groupService';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import LoadingSpinner from '../components/LoadingSpinner';

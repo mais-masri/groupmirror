@@ -1,74 +1,64 @@
-import api from './api';
-
-// Demo mode flag
-const DEMO_MODE = false;
+/**
+ * GroupService - Handles all group management API calls
+ * Creates groups, joins groups, manages members, and retrieves group data
+ */
+import { api } from './api';
 
 class GroupService {
-  // Create group
-  async createGroup(name) {
-    if (DEMO_MODE) {
-      // Demo mode - simulate successful group creation
-      const demoGroup = {
-        _id: 'demo-group-' + Date.now(),
-        name,
-        description: 'Demo support group',
-        members: [{ name: 'You' }],
-        createdAt: new Date().toISOString(),
-        inviteCode: 'DEMO2024'
-      };
-      return demoGroup;
-    }
-    
-    const result = await api.post('/api/groups', { name });
-    return result.data;
-  }
-
   // Get user's groups
-  async getUserGroups() {
-    if (DEMO_MODE) {
-      // Demo mode - return sample group
-      return [{
-        _id: 'demo-group-1',
-        name: 'Demo Support Group',
-        description: 'Our close-knit group for mutual support and mood tracking',
-        members: [
-          { name: 'Sarah', role: 'Member' },
-          { name: 'Mike', role: 'Member' },
-          { name: 'Alex', role: 'Member' }
-        ],
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        moodCount: 25,
-        inviteCode: 'SUPPORT2024'
-      }];
+  async getGroups() {
+    try {
+      const response = await api.get('/api/groups');
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error fetching groups:', error);
+      throw error;
     }
-    
-    const result = await api.get('/api/groups/mine');
-    return result.data;
   }
 
-  // Get group members
-  async getGroupMembers(groupId) {
-    if (DEMO_MODE) {
-      // Demo mode - return sample members
-      return [
-        { id: 'user1', name: 'Sarah' },
-        { id: 'user2', name: 'Mike' },
-        { id: 'user3', name: 'Alex' }
-      ];
+  // Get specific group details
+  async getGroup(groupId) {
+    try {
+      const response = await api.get(`/api/groups/${groupId}`);
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error fetching group:', error);
+      throw error;
     }
-    
-    const result = await api.get(`/api/groups/${groupId}/members`);
-    return result.data;
+  }
+
+  // Create new group
+  async createGroup(groupData) {
+    try {
+      const response = await api.post('/api/groups', groupData);
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error creating group:', error);
+      throw error;
+    }
+  }
+
+  // Join group with invite code
+  async joinGroup(inviteCode) {
+    try {
+      const response = await api.post('/api/groups/join', { inviteCode });
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error joining group:', error);
+      throw error;
+    }
+  }
+
+  // Get group statistics
+  async getGroupStats(groupId) {
+    try {
+      const response = await api.get(`/api/groups/${groupId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error fetching group stats:', error);
+      throw error;
+    }
   }
 }
 
-// Create and export a singleton instance
-const groupService = new GroupService();
-
-// Export individual functions for easier use
-export const createGroup = (name) => groupService.createGroup(name);
-export const getUserGroups = () => groupService.getUserGroups();
-export const getGroupMembers = (groupId) => groupService.getGroupMembers(groupId);
-
-export default groupService;
+export default new GroupService();
