@@ -246,19 +246,6 @@ npm run seed       # Seed database with sample data
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
-
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
-
-## 🙏 Acknowledgments
-
-- React team for the amazing framework
-- Tailwind CSS for beautiful styling
-- MongoDB for the database solution
-- All contributors and testers
 
 ---
 
