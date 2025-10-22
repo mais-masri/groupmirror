@@ -1,143 +1,266 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-
-// Load environment variables
-dotenv.config();
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
 
 // MongoDB connection
-const connectDB = async () => {
-  try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/groupmirror';
-    // Skip MongoDB connection for now - using mock endpoints
-    console.log('⚠️  Skipping MongoDB connection - using mock endpoints');
+async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.log('⚠️  MONGODB_URI not found, running without database');
     return;
-    // await mongoose.connect(mongoUri);
-    // console.log('✅ MongoDB connected');
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
-    // Don't exit on MongoDB error for now
-    console.log('⚠️  Continuing without MongoDB');
   }
-};
 
-// Simple health check endpoint
-app.get('/api/health', (req, res) => {
+  try {
+    await mongoose.connect(uri, { 
+      dbName: 'groupmirror', 
+      serverSelectionTimeoutMS: 8000 
+    });
+    console.log('✅ [DB] Connected to MongoDB');
+  } catch (err) {
+    console.error('❌ [DB] Connection failed:', err);
+    console.log('⚠️  Continuing without database connection');
+  }
+}
+
+// Health endpoints
+app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState;
+  const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  
   res.json({ 
-    status: 'OK', 
-    message: 'Group Mirror API is running',
+    ok: true,
+    env: process.env.NODE_ENV || 'development',
+    port: PORT,
+    database: {
+      status: dbStates[dbStatus] || 'unknown',
+      readyState: dbStatus
+    },
     timestamp: new Date().toISOString()
   });
 });
 
-// Simple auth endpoints (mock implementation)
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
+});
+
+// Authentication endpoints
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   
-  // Mock authentication - in real app, validate against database
-  if (email && password) {
-    const mockToken = 'mock-jwt-token-' + Date.now();
-    res.json({
-      token: mockToken,
-      user: {
-        id: 'mock-user-id',
-        email: email,
-        name: email.split('@')[0]
-      }
+  if (!email || !password) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Email and password are required' 
     });
-  } else {
-    res.status(400).json({ message: 'Email and password required' });
   }
+
+  const mockToken = 'jwt-token-' + Date.now();
+  res.json({
+    success: true,
+    token: mockToken,
+    user: {
+      id: 'user-123',
+      email: email,
+      username: email.split('@')[0],
+      firstName: 'John',
+      lastName: 'Doe'
+    }
+  });
 });
 
 app.post('/api/auth/register', (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, username, firstName, lastName } = req.body;
   
-  // Mock registration
-  if (email && password && name) {
-    const mockToken = 'mock-jwt-token-' + Date.now();
-    res.json({
-      token: mockToken,
-      user: {
-        id: 'mock-user-id',
-        email: email,
-        name: name
-      }
+  if (!email || !password || !username) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Email, password, and username are required' 
     });
-  } else {
-    res.status(400).json({ message: 'Email, password, and name required' });
   }
+
+  const mockToken = 'jwt-token-' + Date.now();
+  res.json({
+    success: true,
+    token: mockToken,
+    user: {
+      id: 'user-' + Date.now(),
+      email: email,
+      username: username,
+      firstName: firstName || 'User',
+      lastName: lastName || 'Name'
+    }
+  });
 });
 
-// Mock mood endpoints
-app.get('/api/moods/history', (req, res) => {
-  res.json([]); // Empty array for now
-});
-
-app.get('/api/moods/trends', (req, res) => {
-  res.json([]); // Empty array for now
+// Mood endpoints
+app.get('/api/moods', (req, res) => {
+  const mockMoods = [
+    {
+      _id: 'mood-1',
+      rating: 4,
+      notes: 'Feeling good today!',
+      date: new Date().toISOString(),
+      userId: 'user-123'
+    },
+    {
+      _id: 'mood-2', 
+      rating: 3,
+      notes: 'Average day',
+      date: new Date(Date.now() - 86400000).toISOString(),
+      userId: 'user-123'
+    }
+  ];
+  
+  res.json({
+    success: true,
+    data: mockMoods
+  });
 });
 
 app.post('/api/moods', (req, res) => {
-  res.json({
-    _id: 'mock-mood-id',
-    rating: req.body.rating || 5,
-    notes: req.body.notes || '',
+  const { rating, notes } = req.body;
+  
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Rating must be between 1 and 5' 
+    });
+  }
+
+  const newMood = {
+    _id: 'mood-' + Date.now(),
+    rating: parseInt(rating),
+    notes: notes || '',
     date: new Date().toISOString(),
-    userId: 'mock-user-id'
+    userId: 'user-123'
+  };
+
+  res.json({
+    success: true,
+    data: newMood
   });
 });
 
-// Mock group endpoints
+// Group endpoints
 app.get('/api/groups', (req, res) => {
-  res.json([]); // Empty array for now
-});
-
-app.get('/api/groups/:id', (req, res) => {
+  const mockGroups = [
+    {
+      _id: 'group-1',
+      name: 'Family Group',
+      description: 'Our family mood tracking',
+      members: ['user-123', 'user-456'],
+      owner: 'user-123',
+      isPrivate: false
+    },
+    {
+      _id: 'group-2',
+      name: 'Work Team',
+      description: 'Team wellness tracking',
+      members: ['user-123', 'user-789'],
+      owner: 'user-789',
+      isPrivate: true
+    }
+  ];
+  
   res.json({
-    _id: req.params.id,
-    name: 'Mock Group',
-    description: 'This is a mock group',
-    members: []
+    success: true,
+    data: mockGroups
   });
 });
 
-app.get('/api/groups/:id/moods', (req, res) => {
-  res.json([]); // Empty array for now
-});
+app.post('/api/groups', (req, res) => {
+  const { name, description, isPrivate } = req.body;
+  
+  if (!name) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Group name is required' 
+    });
+  }
 
-// Mock profile endpoints
-app.get('/api/profile/settings', (req, res) => {
+  const newGroup = {
+    _id: 'group-' + Date.now(),
+    name: name,
+    description: description || '',
+    members: ['user-123'],
+    owner: 'user-123',
+    isPrivate: isPrivate || false
+  };
+
   res.json({
-    notifications: true,
-    emailReminders: true,
-    moodReminderTime: '20:00',
-    theme: 'light',
-    timezone: 'UTC'
+    success: true,
+    data: newGroup
   });
 });
 
-app.put('/api/profile/settings', (req, res) => {
-  res.json({ message: 'Settings saved successfully' });
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Welcome to Group Mirror API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      moods: '/api/moods',
+      groups: '/api/groups'
+    }
+  });
 });
 
-app.delete('/api/profile', (req, res) => {
-  res.json({ message: 'Account deleted successfully' });
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
 });
 
 // Start server
-(async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+const server = app.listen(PORT, () => {
+  console.log(`🚀 [API] Server running on port ${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📚 API docs: http://localhost:${PORT}/api/docs`);
+  console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+  console.log(`😊 Mood endpoints: http://localhost:${PORT}/api/moods`);
+  console.log(`👥 Group endpoints: http://localhost:${PORT}/api/groups`);
+  
+  // Connect to database in background
+  connectDB().catch(() => {
+    console.log('⚠️  Database connection failed, but server is running');
   });
-})();
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('❌ Server error:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.log(`❌ Port ${PORT} is already in use. Trying port ${PORT + 1}...`);
+    const newPort = PORT + 1;
+    app.listen(newPort, () => {
+      console.log(`🚀 [API] Server running on port ${newPort}`);
+    });
+  }
+});

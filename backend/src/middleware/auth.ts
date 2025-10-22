@@ -16,7 +16,12 @@ export function auth(required = true) {
         email: string;
         role?: "user" | "admin";
       };
-      req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
+      req.user = { 
+        id: decoded.id, 
+        email: decoded.email, 
+        username: decoded.email.split('@')[0], // Extract username from email
+        role: decoded.role 
+      };
       next();
     } catch {
       return res.status(401).json({ message: "Invalid token" });

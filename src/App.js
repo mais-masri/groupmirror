@@ -17,6 +17,7 @@ import GroupChatPage from './pages/GroupChatPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import GroupsPage from './pages/GroupsPage';
+import DebugPage from './pages/DebugPage';
 
 // Import components
 import ProtectedRoute from './components/ProtectedRoute';
@@ -99,6 +100,9 @@ function App() {
                 <GroupsPage />
               </ProtectedRoute>
             } />
+            
+            {/* Debug route */}
+            <Route path="/debug" element={<DebugPage />} />
             
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />

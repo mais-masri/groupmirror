@@ -5,8 +5,9 @@ const healthCheck = async () => {
   
   for (let i = 0; i < delays.length; i++) {
     try {
-      await api.get('/api/health');
+      const response = await api.get('/api/health');
       console.log('✅ API OK');
+      console.log('Health:', response.data);
       window.dispatchEvent(new CustomEvent('api:up'));
       return true;
     } catch (error) {

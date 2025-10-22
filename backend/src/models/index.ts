@@ -3,6 +3,9 @@ export * from './User';
 export * from './Mood';
 export * from './Group';
 
+// Re-export specific types for convenience
+export type { UpdateUser as UpdateUserSchema } from './User';
+
 // Common types
 export interface ApiResponse<T = any> {
   success: boolean;

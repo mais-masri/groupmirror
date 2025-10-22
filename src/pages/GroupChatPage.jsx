@@ -32,6 +32,12 @@ const GroupChatPage = () => {
       try {
         setLoading(true);
         
+        // Wait for user to be loaded
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+        
         // For demo purposes, create a mock group since API might be down
         const mockGroup = {
           id: 'demo-group-1',
@@ -48,9 +54,9 @@ const GroupChatPage = () => {
 
         // Mock recent moods
         setRecentMoods([
-          { userId: user?.id, mood: 4, notes: 'Feeling good today', date: new Date() },
-          { userId: 'user1', mood: 3, notes: 'Okay day', date: new Date() },
-          { userId: 'user2', mood: 5, notes: 'Great mood!', date: new Date() }
+          { userId: user.id, mood: 4, notes: 'Feeling good today', date: new Date() },
+          { id: 'user1', mood: 3, notes: 'Okay day', date: new Date() },
+          { id: 'user2', mood: 5, notes: 'Great mood!', date: new Date() }
         ]);
 
         // Load chat messages (mock data for demo)
@@ -120,7 +126,7 @@ const GroupChatPage = () => {
   }, [user]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedGroup) return;
+    if (!newMessage.trim() || !selectedGroup || !user) return;
 
     try {
       const message = {
@@ -146,6 +152,7 @@ const GroupChatPage = () => {
   };
 
   const getCurrentUserMood = () => {
+    if (!user) return null;
     const todayMood = recentMoods.find(mood => 
       mood.userId === user.id && 
       new Date(mood.date).toDateString() === new Date().toDateString()

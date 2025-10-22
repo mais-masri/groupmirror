@@ -3,15 +3,11 @@ import axios from 'axios';
 // Demo mode - use mock API responses when backend is unavailable
 const DEMO_MODE = false; // Set to false when backend is deployed
 
-const API_URL = DEMO_MODE 
-  ? 'https://jsonplaceholder.typicode.com' // Mock API for demo
-  : ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
-     process.env.REACT_APP_API_URL ||
-     'http://localhost:3001');
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-export const api = axios.create({ baseURL: API_URL });
+export const api = axios.create({ baseURL: API_URL, timeout: 8000 });
 
-console.log('[API] baseURL =', API_URL, DEMO_MODE ? '(DEMO MODE)' : '');
+console.log('[API] baseURL =', process.env.REACT_APP_API_URL);
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");

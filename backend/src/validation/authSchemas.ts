@@ -1,17 +1,19 @@
 import { z } from "zod";
 
-export const RegisterSchema = z.object({
+export const registerSchema = z.object({
   body: z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Valid email is required"),
-    password: z.string().min(6, "Password must be at least 6 chars"),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1).optional(),
+    username: z.string().min(3),
+    email: z.string().email(),
+    password: z.string().min(6),
   }),
 });
 
-export const LoginSchema = z.object({
+export const loginSchema = z.object({
   body: z.object({
-    email: z.string().email("Valid email is required"),
-    password: z.string().min(6, "Password must be at least 6 chars"),
+    email: z.string().email(),
+    password: z.string().min(6),
   }),
 });
 
@@ -22,7 +24,7 @@ export const CreateMoodSchema = z.object({
   }),
 });
 
-export type RegisterInput = z.infer<typeof RegisterSchema>["body"];
-export type LoginInput = z.infer<typeof LoginSchema>["body"];
+export type RegisterInput = z.infer<typeof registerSchema>["body"];
+export type LoginInput = z.infer<typeof loginSchema>["body"];
 export type CreateMoodInput = z.infer<typeof CreateMoodSchema>["body"];
 

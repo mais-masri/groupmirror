@@ -4,11 +4,13 @@
   "description": "Backend API for Group Mirror mood tracking application",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "dev": "cross-env TS_NODE_TRANSPILE_ONLY=1 nodemon --watch src --ext ts,js --exec \"node -r dotenv/config -r ts-node/register src/server.ts\"",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "start:open": "npm run build && node dist/server.js & start http://localhost:3001/api/docs",
     "seed": "ts-node src/scripts/seed.ts",
+    "health": "powershell -NoProfile -Command \"(Invoke-WebRequest -UseBasicParsing http://localhost:3001/api/health).StatusCode\"",
     "kill-3001": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3001 -State Listen | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }\""
   },
   "keywords": [
@@ -22,9 +24,10 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
     "morgan": "^1.10.0",
     "zod": "^3.22.4"
@@ -35,10 +38,11 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^20.10.5",
-    "nodemon": "^3.0.2",
+    "@types/node": "^20.19.23",
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   }
 }

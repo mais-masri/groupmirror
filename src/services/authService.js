@@ -1,7 +1,7 @@
 import api from './api';
 
 // Demo mode flag
-const DEMO_MODE = true;
+const DEMO_MODE = false;
 
 class AuthService {
   // User registration
