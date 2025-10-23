@@ -7,20 +7,7 @@ import moodRoutes from './routes/moods';
 import profileRoutes from './routes/profile';
 import settingsRoutes from './routes/settings';
 import groupRoutes from './routes/groups';
-
-// Load environment variables
-dotenv.config();
-
-const app = express();
-const PORT = parseInt(process.env.PORT || '3001', 10);
-
-// Middleware
-app.use(express.json());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-
+import chatRoutes from './routes/chat';
 // MongoDB connection
 async function connectDB() {
   const uri = process.env.MONGODB_URI;
@@ -41,7 +28,24 @@ async function connectDB() {
   }
 }
 
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = parseInt(process.env.PORT || '3001', 10);
+
+// Middleware
+app.use(express.json());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
+
 // Health endpoints
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true });
+});
+
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState;
   const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
@@ -58,16 +62,13 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
-});
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/moods', moodRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Profile endpoints
 app.get('/api/profile', (req, res) => {
@@ -137,7 +138,15 @@ app.get('/api/docs', (req, res) => {
       },
       groups: {
         'GET /api/groups': 'Get user groups',
-        'POST /api/groups': 'Create new group'
+        'POST /api/groups': 'Create new group',
+        'GET /api/groups/:id': 'Get specific group details',
+        'GET /api/groups/:id/moods': 'Get group mood entries',
+        'GET /api/groups/:id/stats': 'Get group statistics',
+        'POST /api/groups/join': 'Join group with invite code'
+      },
+      chat: {
+        'GET /api/chat/:groupId/messages': 'Get group chat messages',
+        'POST /api/chat/:groupId/messages': 'Send message to group'
       },
       profile: {
         'GET /api/profile': 'Get user profile',

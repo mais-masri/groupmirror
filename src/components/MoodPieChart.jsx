@@ -1,3 +1,7 @@
+/**
+ * MoodPieChart - Displays group mood distribution in a pie chart
+ * Shows mood breakdown with proper tie-handling for equal counts
+ */
 import React from 'react';
 
 const MoodPieChart = ({ moodData, size = 300 }) => {
@@ -177,20 +181,28 @@ const MoodPieChart = ({ moodData, size = 300 }) => {
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600">Most Common Mood:</span>
                 <div className="flex items-center gap-2">
-                  {segments.length > 0 ? (
-                    <>
-                      <span className="text-xl">
-                        {segments.reduce((max, segment) => 
-                          segment.count > max.count ? segment : max
-                        ).config.emoji}
-                      </span>
-                      <span className="font-semibold text-gray-800">
-                        {segments.reduce((max, segment) => 
-                          segment.count > max.count ? segment : max
-                        ).config.label}
-                      </span>
-                    </>
-                  ) : 'N/A'}
+                  {segments.length > 0 ? (() => {
+                    const maxCount = Math.max(...segments.map(s => s.count));
+                    const mostCommonSegments = segments.filter(s => s.count === maxCount);
+                    
+                    if (mostCommonSegments.length === 1) {
+                      // Only one mood type has the highest count
+                      const segment = mostCommonSegments[0];
+                      return (
+                        <>
+                          <span className="text-xl">{segment.config.emoji}</span>
+                          <span className="font-semibold text-gray-800">{segment.config.label}</span>
+                        </>
+                      );
+                    } else {
+                      // Multiple mood types tied for highest count
+                      return (
+                        <span className="text-sm text-gray-500 italic">
+                          Tied between {mostCommonSegments.length} moods
+                        </span>
+                      );
+                    }
+                  })() : 'N/A'}
                 </div>
               </div>
               <div className="flex items-center gap-3">

@@ -199,12 +199,12 @@ router.post('/join', authenticateToken, validateRequest(joinGroupSchema), async 
     }
 
     // Check if user is already a member
-    if (group.members.includes(userId)) {
+    if (group.members.some(member => member.toString() === userId)) {
       return res.status(400).json({ success: false, message: 'You are already a member of this group' });
     }
 
     // Add user to group
-    group.members.push(userId);
+    group.members.push(userId as any);
     await group.save();
 
     // Populate the response
@@ -220,6 +220,72 @@ router.post('/join', authenticateToken, validateRequest(joinGroupSchema), async 
   } catch (error: any) {
     console.error('Error joining group:', error);
     res.status(500).json({ success: false, message: 'Failed to join group', error: error.message });
+  }
+});
+
+// GET group moods - all mood entries from group members
+router.get('/:groupId/moods', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { groupId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User ID not found in token' });
+    }
+
+    const group = await Group.findOne({
+      _id: groupId,
+      $or: [
+        { adminId: userId },
+        { members: userId }
+      ],
+      isActive: true
+    });
+
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Get only today's mood entries from group members
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    
+    const moods = await Mood.find({
+      userId: { $in: group.members },
+      date: {
+        $gte: startOfDay,
+        $lt: endOfDay
+      }
+    })
+    .populate('userId', 'firstName lastName username')
+    .sort({ createdAt: -1 });
+
+    // Transform the data to match frontend expectations
+    const transformedMoods = moods.map(mood => ({
+      _id: mood._id,
+      value: mood.moodLevel,
+      note: mood.description,
+      user: {
+        name: mood.userId && typeof mood.userId === 'object' && 'firstName' in mood.userId 
+          ? `${(mood.userId as any).firstName} ${(mood.userId as any).lastName}`.trim() 
+          : 'Anonymous',
+        id: mood.userId && typeof mood.userId === 'object' && '_id' in mood.userId 
+          ? (mood.userId as any)._id 
+          : mood.userId
+      },
+      createdAt: (mood as any).createdAt,
+      moodType: mood.moodType
+    }));
+
+    res.json({
+      success: true,
+      data: transformedMoods,
+      count: transformedMoods.length
+    });
+  } catch (error: any) {
+    console.error('Error fetching group moods:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch group moods', error: error.message });
   }
 });
 

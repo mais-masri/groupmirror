@@ -59,6 +59,17 @@ class GroupService {
       throw error;
     }
   }
+
+  // Get group moods - all mood entries from group members
+  async getGroupMoods(groupId) {
+    try {
+      const response = await api.get(`/api/groups/${groupId}/moods`);
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error fetching group moods:', error);
+      throw error;
+    }
+  }
 }
 
 export default new GroupService();

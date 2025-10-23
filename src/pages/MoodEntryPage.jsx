@@ -1,6 +1,6 @@
 /**
- * MoodEntryPage - Calendar-based mood logging with date selection
- * Users can log moods for past dates and view their mood history with calendar navigation
+ * MoodEntryPage - Personal mood tracking with calendar view and daily navigation arrows
+ * Users can log their daily mood and view their mood history
  */
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
@@ -320,16 +320,67 @@ const MoodEntryPage = () => {
     const today = new Date();
     const isFuture = selectedDate > today;
 
+    // Navigation functions
+    const goToPreviousDay = () => {
+      const previousDay = new Date(selectedDate);
+      previousDay.setDate(previousDay.getDate() - 1);
+      setSelectedDate(previousDay);
+    };
+
+    const goToNextDay = () => {
+      const nextDay = new Date(selectedDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      setSelectedDate(nextDay);
+    };
+
+    const goToToday = () => {
+      setSelectedDate(new Date());
+    };
+
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-          {selectedDate.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}
-        </h3>
+        {/* Daily Navigation Header */}
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={goToPreviousDay}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors"
+            title="Previous day"
+          >
+            <i className="fas fa-chevron-left"></i>
+          </button>
+          
+          <div className="flex flex-col items-center">
+            <h3 className="text-xl font-semibold text-gray-800">
+              {selectedDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </h3>
+            {selectedDate.toDateString() !== today.toDateString() && (
+              <button
+                onClick={goToToday}
+                className="text-sm text-blue-600 hover:text-blue-800 underline mt-1"
+              >
+                Go to today
+              </button>
+            )}
+          </div>
+          
+          <button
+            onClick={goToNextDay}
+            disabled={selectedDate.toDateString() === today.toDateString()}
+            className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+              selectedDate.toDateString() === today.toDateString()
+                ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800'
+            }`}
+            title="Next day"
+          >
+            <i className="fas fa-chevron-right"></i>
+          </button>
+        </div>
         
         <div className="flex items-center justify-center">
           <div className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl ${
