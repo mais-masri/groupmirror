@@ -81,6 +81,17 @@ class GroupService {
       throw error;
     }
   }
+
+  // Discover public groups (groups user is not a member of)
+  async discoverPublicGroups() {
+    try {
+      const response = await api.get('/api/groups/public/discover');
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error fetching public groups:', error);
+      throw error;
+    }
+  }
 }
 
 export default new GroupService();
