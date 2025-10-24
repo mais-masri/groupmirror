@@ -48,8 +48,8 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
         email: newUser.email, 
         username: newUser.username 
       },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      (process.env.JWT_SECRET || 'default-secret-key-for-development') as any,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any
     );
 
     // Return user data (without password)
@@ -62,7 +62,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
       createdAt: newUser.createdAt
     };
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'User registered successfully',
       token,
@@ -71,7 +71,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
 
   } catch (error: any) {
     console.error('Registration error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Registration failed',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -109,8 +109,8 @@ router.post('/login', validateRequest(loginSchema), async (req, res) => {
         email: user.email, 
         username: user.username 
       },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      (process.env.JWT_SECRET || 'default-secret-key-for-development') as any,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any
     );
 
     // Return user data (without password)
@@ -123,7 +123,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res) => {
       createdAt: user.createdAt
     };
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Login successful',
       token,
@@ -132,7 +132,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res) => {
 
   } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Login failed',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -162,7 +162,7 @@ router.get('/me', async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       user: {
         id: user._id,
@@ -176,7 +176,7 @@ router.get('/me', async (req, res) => {
 
   } catch (error: any) {
     console.error('Profile error:', error);
-    res.status(401).json({
+    return res.status(401).json({
       success: false,
       message: 'Invalid token'
     });

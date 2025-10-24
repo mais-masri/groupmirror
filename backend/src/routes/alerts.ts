@@ -58,7 +58,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
 
     for (const group of userGroups) {
       const groupName = group.name;
-      const groupId = group._id.toString();
+      const groupId = (group._id as any).toString();
 
       for (const member of group.members as any[]) {
         if (member._id.toString() === userId) continue; // Don't alert about yourself
@@ -92,7 +92,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
             groupName: groupName,
             message: `${memberName} is feeling ${todaysMood.moodLevel}/5 today. They might need some support.`,
             priority: priority,
-            timestamp: todaysMood.createdAt,
+            timestamp: (todaysMood as any).createdAt,
             moodLevel: todaysMood.moodLevel,
           });
           processedUsers.add(memberId.toString());
@@ -101,7 +101,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
           const lastMood = await Mood.findOne({ userId: memberId }).sort({ createdAt: -1 });
           
           if (lastMood) {
-            const daysSinceLastMood = Math.floor((Date.now() - lastMood.createdAt.getTime()) / (24 * 60 * 60 * 1000));
+            const daysSinceLastMood = Math.floor((Date.now() - (lastMood as any).createdAt.getTime()) / (24 * 60 * 60 * 1000));
             
             if (daysSinceLastMood >= 2) { // Only alert if 2+ days without mood entry
               allAlerts.push({
@@ -113,7 +113,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
                 groupName: groupName,
                 message: `${memberName} hasn't logged their mood in ${daysSinceLastMood} days. Check in with them?`,
                 priority: 'medium',
-                timestamp: lastMood.createdAt,
+                timestamp: (lastMood as any).createdAt,
                 daysMissed: daysSinceLastMood,
               });
               processedUsers.add(memberId.toString());
@@ -126,8 +126,8 @@ router.get('/', authenticateToken, async (req: any, res) => {
     // Sort alerts by priority (urgent > high > medium) and then by timestamp
     allAlerts.sort((a, b) => {
       const priorityOrder = { 'urgent': 1, 'high': 2, 'medium': 3 };
-      if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      if ((priorityOrder as any)[a.priority] !== (priorityOrder as any)[b.priority]) {
+        return (priorityOrder as any)[a.priority] - (priorityOrder as any)[b.priority];
       }
       return b.timestamp.getTime() - a.timestamp.getTime();
     });
@@ -135,7 +135,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
     // Limit to top 3 alerts only
     const top3Alerts = allAlerts.slice(0, 3);
 
-    res.json({
+    return res.json({
       success: true,
       data: top3Alerts,
       count: top3Alerts.length
@@ -143,7 +143,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
 
   } catch (error: any) {
     console.error('Error fetching mood alerts:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch mood alerts', 
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'

@@ -103,7 +103,14 @@ router.post('/:groupId/messages', authenticateToken, validateRequest(sendMessage
       .populate('userId', 'firstName lastName username')
       .select('-groupId');
 
-    res.status(201).json({
+    if (!populatedMessage) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve message'
+      });
+    }
+
+    return res.status(201).json({
       success: true,
       message: 'Message sent successfully',
       data: {
@@ -111,8 +118,8 @@ router.post('/:groupId/messages', authenticateToken, validateRequest(sendMessage
         content: populatedMessage.content,
         messageType: populatedMessage.messageType,
         user: {
-          name: `${populatedMessage.userId.firstName} ${populatedMessage.userId.lastName}`,
-          id: populatedMessage.userId._id
+          name: `${(populatedMessage.userId as any).firstName} ${(populatedMessage.userId as any).lastName}`,
+          id: (populatedMessage.userId as any)._id
         },
         createdAt: populatedMessage.createdAt
       }
@@ -120,7 +127,7 @@ router.post('/:groupId/messages', authenticateToken, validateRequest(sendMessage
 
   } catch (error: any) {
     console.error('Message creation error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to send message',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -173,13 +180,13 @@ router.get('/:groupId/messages', authenticateToken, validateRequest(getMessagesS
       content: message.content,
       messageType: message.messageType,
       user: {
-        name: `${message.userId.firstName} ${message.userId.lastName}`,
-        id: message.userId._id
+        name: `${(message.userId as any).firstName} ${(message.userId as any).lastName}`,
+        id: (message.userId as any)._id
       },
       createdAt: message.createdAt
     })).reverse(); // Reverse to show oldest first
 
-    res.json({
+    return res.json({
       success: true,
       data: transformedMessages,
       count: transformedMessages.length
@@ -187,7 +194,7 @@ router.get('/:groupId/messages', authenticateToken, validateRequest(getMessagesS
 
   } catch (error: any) {
     console.error('Message retrieval error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to retrieve messages',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'

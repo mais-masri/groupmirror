@@ -30,6 +30,12 @@ const getMoodsSchema = z.object({
   }),
 });
 
+const deleteMoodSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Mood ID is required'),
+  }),
+});
+
 // Authentication middleware
 const authenticateToken = (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
@@ -104,7 +110,7 @@ router.post('/', authenticateToken, validateRequest(createMoodSchema), async (re
 
     await newMood.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Mood recorded successfully',
       data: newMood
@@ -112,7 +118,7 @@ router.post('/', authenticateToken, validateRequest(createMoodSchema), async (re
 
   } catch (error: any) {
     console.error('Mood creation error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to record mood',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -165,7 +171,7 @@ router.get('/', authenticateToken, validateRequest(getMoodsSchema), async (req, 
       .sort({ date: -1 })
       .select('-userId'); // Exclude userId from response
 
-    res.json({
+    return res.json({
       success: true,
       data: moods,
       count: moods.length
@@ -173,7 +179,7 @@ router.get('/', authenticateToken, validateRequest(getMoodsSchema), async (req, 
 
   } catch (error: any) {
     console.error('Mood retrieval error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to retrieve moods',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -203,7 +209,7 @@ router.get('/today', authenticateToken, async (req, res) => {
       }
     }).select('-userId');
 
-    res.json({
+    return res.json({
       success: true,
       data: todayMood,
       hasMoodToday: !!todayMood
@@ -211,7 +217,7 @@ router.get('/today', authenticateToken, async (req, res) => {
 
   } catch (error: any) {
     console.error('Today mood retrieval error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to retrieve today\'s mood',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
@@ -256,7 +262,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
 
     const totalMoods = await Mood.countDocuments({ userId, ...(Object.keys(dateFilter).length ? { date: dateFilter } : {}) });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         stats,
@@ -267,9 +273,49 @@ router.get('/stats', authenticateToken, async (req, res) => {
 
   } catch (error: any) {
     console.error('Mood stats error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to retrieve mood statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Delete a mood entry
+router.delete('/:id', authenticateToken, validateRequest(deleteMoodSchema), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User ID not found in token'
+      });
+    }
+
+    // Verify the mood belongs to the user
+    const mood = await Mood.findOne({ _id: id, userId });
+    
+    if (!mood) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mood entry not found or you do not have permission to delete it'
+      });
+    }
+
+    await Mood.findByIdAndDelete(id);
+
+    return res.json({
+      success: true,
+      message: 'Mood entry deleted successfully'
+    });
+
+  } catch (error: any) {
+    console.error('Mood deletion error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete mood entry',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }

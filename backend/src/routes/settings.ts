@@ -63,13 +63,13 @@ router.get('/', authenticateToken, async (req, res) => {
       await settings.save();
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: settings
     });
   } catch (error: any) {
     console.error('Error fetching settings:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to fetch settings',
       error: error.message
@@ -107,14 +107,14 @@ router.put('/', authenticateToken, validateRequest(updateSettingsSchema), async 
 
     await settings.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Settings updated successfully',
       data: settings
     });
   } catch (error: any) {
     console.error('Error updating settings:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to update settings',
       error: error.message
@@ -141,14 +141,14 @@ router.post('/reset', authenticateToken, async (req, res) => {
     const defaultSettings = new UserSettings({ userId });
     await defaultSettings.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Settings reset to defaults',
       data: defaultSettings
     });
   } catch (error: any) {
     console.error('Error resetting settings:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to reset settings',
       error: error.message

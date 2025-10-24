@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import User from '../models/User';
 
 // JWT Configuration

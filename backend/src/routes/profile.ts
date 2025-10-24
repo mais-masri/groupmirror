@@ -65,7 +65,7 @@ router.get('/', authenticateToken, async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         _id: user._id,
@@ -79,7 +79,7 @@ router.get('/', authenticateToken, async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error getting profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to get profile',
       error: error.message
@@ -145,14 +145,14 @@ router.put('/', authenticateToken, validateRequest(updateProfileSchema), async (
       { new: true, runValidators: true }
     ).select('-password');
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Profile updated successfully',
       data: updatedUser
     });
   } catch (error: any) {
     console.error('Error updating profile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to update profile',
       error: error.message
@@ -187,7 +187,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
     const daysSinceRegistration = user ? 
       Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         totalMoods,
@@ -198,7 +198,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error getting profile stats:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Failed to get profile statistics',
       error: error.message

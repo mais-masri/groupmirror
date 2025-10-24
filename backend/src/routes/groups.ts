@@ -361,6 +361,57 @@ router.get('/:groupId/moods', authenticateToken, async (req, res) => {
   }
 });
 
+// GET public groups (for discovery - no invite codes)
+router.get('/public/discover', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User ID not found in token' });
+    }
+
+    // Get groups that the user is NOT a member of
+    const publicGroups = await Group.find({
+      members: { $ne: userId }, // User is not a member
+      isActive: true
+    })
+    .populate('adminId', 'firstName lastName username')
+    .populate('members', 'firstName lastName username')
+    .select('-inviteCode') // Don't expose invite codes
+    .sort({ createdAt: -1 })
+    .limit(10); // Limit to 10 groups for performance
+
+    // Add mood entries count for each group (without exposing sensitive data)
+    const groupsWithMoodCount = await Promise.all(
+      publicGroups.map(async (group) => {
+        const moodCount = await Mood.countDocuments({
+          userId: { $in: group.members }
+        });
+        
+        return {
+          _id: group._id,
+          name: group.name,
+          description: group.description,
+          memberCount: group.members.length,
+          moodEntries: moodCount,
+          createdAt: group.createdAt,
+          admin: {
+            firstName: (group.adminId as any)?.firstName,
+            lastName: (group.adminId as any)?.lastName,
+            username: (group.adminId as any)?.username
+          }
+          // Note: No inviteCode, no member details
+        };
+      })
+    );
+
+    return res.json({ success: true, data: groupsWithMoodCount });
+  } catch (error: any) {
+    console.error('Error fetching public groups:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch public groups', error: error.message });
+  }
+});
+
 // GET group statistics
 router.get('/:groupId/stats', authenticateToken, async (req, res) => {
   try {
