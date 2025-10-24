@@ -5,17 +5,19 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import moodService from "../services/moodService";
+import moodService, { deleteMood } from "../services/moodService";
 
 const MoodEntryPage = () => {
   const [selectedMood, setSelectedMood] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [moodData, setMoodData] = useState({});
+  const [moodIds, setMoodIds] = useState({}); // Track mood IDs for deletion
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('year'); // 'year', 'month', 'day'
+  const [selectedDateForMood, setSelectedDateForMood] = useState(new Date()); // Date selected for mood entry
+  const [viewMode, setViewMode] = useState('month'); // 'year', 'month', 'day'
 
 
   // Load mood data when component mounts or year changes
@@ -24,6 +26,7 @@ const MoodEntryPage = () => {
       try {
         const moods = await moodService.getMoods(currentYear);
         const moodDataMap = {};
+        const moodIdsMap = {};
         
         moods.forEach(mood => {
           const date = new Date(mood.date);
@@ -37,10 +40,12 @@ const MoodEntryPage = () => {
               moodLevel: mood.moodLevel,
               description: mood.description || ''
             };
+            moodIdsMap[dateKey] = mood._id;
           }
         });
         
         setMoodData(moodDataMap);
+        setMoodIds(moodIdsMap);
       } catch (error) {
         console.error('Error loading mood data:', error);
         // Start with empty data if API fails
@@ -65,7 +70,7 @@ const MoodEntryPage = () => {
     // Check if selected date is in the future
     const today = new Date();
     today.setHours(23, 59, 59, 999); // End of today
-    if (selectedDate > today) {
+    if (selectedDateForMood > today) {
       alert('Cannot log moods for future dates. Please select today or a previous day.');
       return;
     }
@@ -81,14 +86,10 @@ const MoodEntryPage = () => {
         'stressed': 1
       };
 
-      const moodData = {
-        value: moodValueMapping[selectedMood.id],
-        note: message || '',
-        date: selectedDate
-      };
+      const moodLevel = moodValueMapping[selectedMood.id];
 
       try {
-        const response = await moodService.createMood(moodData.value, moodData.note, moodData.date);
+        const response = await moodService.createMood(moodLevel, message, selectedDateForMood);
         
         if (response) {
           // Reset form
@@ -129,6 +130,44 @@ const MoodEntryPage = () => {
     } catch (error) {
       console.error('Mood submission error:', error);
       alert('Failed to save mood. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete mood function
+  const handleDeleteMood = async (date) => {
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const moodId = moodIds[dateKey];
+    
+    if (!moodId) {
+      console.error('No mood ID found for date:', date);
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this mood entry?')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await deleteMood(moodId);
+      
+      // Remove from local state
+      const newMoodData = { ...moodData };
+      const newMoodIds = { ...moodIds };
+      delete newMoodData[dateKey];
+      delete newMoodIds[dateKey];
+      
+      setMoodData(newMoodData);
+      setMoodIds(newMoodIds);
+      
+      setMessage('Mood deleted successfully');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error('Error deleting mood:', error);
+      setMessage('Failed to delete mood. Please try again.');
+      setTimeout(() => setMessage(''), 3000);
     } finally {
       setIsLoading(false);
     }
@@ -201,12 +240,13 @@ const MoodEntryPage = () => {
                 {/* Days of the month */}
                 {Array.from({ length: daysInMonth }, (_, i) => {
                   const day = i + 1;
-                  const date = new Date(currentYear, monthIndex, day);
-                  const today = new Date();
-                  const isToday = date.toDateString() === today.toDateString();
-                  const dateKey = `${currentYear}-${monthIndex}-${day}`;
-                  const moodDataForDate = moodData[dateKey];
-                  const isFuture = date > today;
+            const date = new Date(currentYear, monthIndex, day);
+            const today = new Date();
+            const isToday = date.toDateString() === today.toDateString();
+            const dateKey = `${currentYear}-${monthIndex}-${day}`;
+            const moodDataForDate = moodData[dateKey];
+            const isFuture = date > today;
+            const isSelectedForMood = selectedDateForMood.toDateString() === date.toDateString();
                   
                   return (
                     <div
@@ -214,6 +254,8 @@ const MoodEntryPage = () => {
                       className={`h-8 flex items-center justify-center text-xs rounded cursor-pointer ${
                         isToday 
                           ? 'bg-blue-200 border-2 border-blue-500 font-bold' 
+                          : isSelectedForMood
+                            ? 'bg-purple-200 border-2 border-purple-500 font-bold'
                           : moodDataForDate 
                             ? `${getMoodColor(moodDataForDate.moodLevel)} text-white font-medium` 
                             : isFuture 
@@ -227,6 +269,8 @@ const MoodEntryPage = () => {
                         if (!isFuture) {
                           setSelectedDate(date);
                           setViewMode('day');
+                          // Update the mood entry form date
+                          setSelectedDateForMood(date);
                         }
                       }}
                     >
@@ -277,6 +321,7 @@ const MoodEntryPage = () => {
             const dateKey = `${currentYear}-${currentMonth}-${day}`;
             const moodDataForDate = moodData[dateKey];
             const isFuture = date > today;
+            const isSelectedForMood = selectedDateForMood.toDateString() === date.toDateString();
             
             return (
               <div
@@ -284,6 +329,8 @@ const MoodEntryPage = () => {
                 className={`h-12 flex items-center justify-center text-sm rounded cursor-pointer transition-colors ${
                   isToday 
                     ? 'bg-blue-200 border-2 border-blue-500 font-bold' 
+                    : isSelectedForMood
+                      ? 'bg-purple-200 border-2 border-purple-500 font-bold'
                     : moodDataForDate 
                       ? `${getMoodColor(moodDataForDate.moodLevel)} text-white font-medium` 
                       : isFuture 
@@ -297,6 +344,8 @@ const MoodEntryPage = () => {
                   if (!isFuture) {
                     setSelectedDate(date);
                     setViewMode('day');
+                    // Update the mood entry form date
+                    setSelectedDateForMood(date);
                   }
                 }}
               >
@@ -402,6 +451,13 @@ const MoodEntryPage = () => {
                 <p className="text-gray-600 mt-2 italic">"{moodDataForDate.description}"</p>
               )}
               <p className="text-gray-500 text-sm mt-2">Logged successfully</p>
+              <button
+                onClick={() => handleDeleteMood(selectedDate)}
+                disabled={isLoading}
+                className="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-red-300 transition-colors text-sm"
+              >
+                {isLoading ? 'Deleting...' : 'Delete Mood'}
+              </button>
             </div>
           ) : isFuture ? (
             <p className="text-gray-500">Cannot log moods for future dates</p>
@@ -452,13 +508,23 @@ const MoodEntryPage = () => {
               <input
                 id="date"
                 type="date"
-                value={selectedDate.toISOString().split('T')[0]}
-                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                value={selectedDateForMood.toISOString().split('T')[0]}
+                onChange={(e) => setSelectedDateForMood(new Date(e.target.value))}
                 max={new Date().toISOString().split('T')[0]} // Prevent future dates
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <p className="text-sm text-gray-500 mt-2">
                 You can log moods for today or previous days, but not future dates.
+                {selectedDateForMood.toDateString() !== new Date().toDateString() && (
+                  <span className="block mt-1 text-purple-600 font-medium">
+                    📅 Selected: {selectedDateForMood.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                )}
               </p>
             </div>
           )}

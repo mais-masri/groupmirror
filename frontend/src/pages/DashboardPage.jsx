@@ -60,22 +60,12 @@ const DashboardPage = () => {
       
     } catch (err) {
       console.error('Error loading dashboard data:', err);
-      // For demo purposes, set sample data
-      setTodaysMood({
-        moodLevel: 5,
-        description: 'Great day working on GroupMirror!',
-        date: new Date().toISOString()
-      });
-      setMoodHistory([
-        { moodLevel: 5, date: new Date().toISOString() },
-        { moodLevel: 4, date: new Date(Date.now() - 86400000).toISOString() },
-        { moodLevel: 3, date: new Date(Date.now() - 172800000).toISOString() }
-      ]);
-      generateMotivationalMessage(
-        { moodLevel: 5, description: 'Great day working on GroupMirror!' },
-        [{ moodLevel: 5 }, { moodLevel: 4 }, { moodLevel: 3 }],
-        { success: true, data: [{ _id: 'demo-group' }] }
-      );
+      // Set empty state for new users
+      setTodaysMood(null);
+      setMoodHistory([]);
+      setUserProfile(null);
+      setGroupMoodData(null);
+      generateMotivationalMessage(null, [], { success: true, data: [] });
     } finally {
       setLoading(false);
     }

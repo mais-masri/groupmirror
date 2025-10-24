@@ -13,6 +13,7 @@ import profileService from '../services/profileService';
 const GroupsPage = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [userGroups, setUserGroups] = useState([]);
+  const [publicGroups, setPublicGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -31,14 +32,16 @@ const GroupsPage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Load user profile and groups in parallel
-      const [profileData, groupsData] = await Promise.all([
+      // Load user profile, groups, and public groups in parallel
+      const [profileData, groupsData, publicGroupsData] = await Promise.all([
         profileService.getProfile(),
-        groupService.getGroups()
+        groupService.getGroups(),
+        groupService.discoverPublicGroups()
       ]);
       
       setUserProfile(profileData.data);
       setUserGroups(groupsData.data || []);
+      setPublicGroups(publicGroupsData.data || []);
     } catch (err) {
       console.error('Error loading data:', err);
       setError('Failed to load data');
@@ -482,10 +485,77 @@ const GroupsPage = () => {
                         Copy Code
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Share this code with others to invite them to your group</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Share this code with others to invite them to your group.
+                      <br />
+                      <span className="text-red-500 font-medium">⚠️ Only group members can see this code</span>
+                    </p>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Other Groups Section - Show below user's current group */}
+          {publicGroups.length > 0 && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  Other Groups You Can Join
+                </h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {publicGroups.length} group{publicGroups.length !== 1 ? 's' : ''} available
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {publicGroups.slice(0, 6).map((group) => (
+                  <div key={group._id} className="bg-white dark:bg-gray-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 p-4 border border-gray-100 dark:border-gray-600">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-800 dark:text-gray-100 mb-1">{group.name}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{group.description}</p>
+                      </div>
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg ml-3">
+                        {group.name.charAt(0)}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-3">
+                      <span className="flex items-center">
+                        <i className="fas fa-users mr-1"></i>
+                        {group.memberCount} member{group.memberCount !== 1 ? 's' : ''}
+                      </span>
+                      <span className="flex items-center">
+                        <i className="fas fa-smile mr-1"></i>
+                        {group.moodEntries} mood{group.moodEntries !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                      Created by {group.admin.firstName} {group.admin.lastName}
+                    </div>
+                    
+                    <button
+                      onClick={() => setShowJoinForm(true)}
+                      className="w-full bg-gradient-to-r from-green-500 to-teal-600 text-white py-2 px-4 rounded-lg hover:from-green-600 hover:to-teal-700 transition-all duration-200 text-sm font-medium"
+                    >
+                      <i className="fas fa-plus mr-1"></i>
+                      Request to Join
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {publicGroups.length > 6 && (
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
+                  >
+                    View All {publicGroups.length} Groups
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </main>

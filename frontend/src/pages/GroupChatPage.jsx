@@ -50,51 +50,9 @@ const GroupChatPage = () => {
           console.error('Error fetching groups:', error);
         }
         
-        // If no groups found or error, show demo data
-        setGroupInfo({
-          _id: 'demo',
-          name: 'Demo Support Group',
-          description: 'Sample group for demonstration',
-          members: [
-            { name: 'Mais Masri' },
-            { name: 'Sarah Johnson' },
-            { name: 'Mike Chen' },
-            { name: 'Emma Williams' }
-          ]
-        });
-        
-        setMessages([
-          {
-            _id: 'demo-1',
-            content: 'Welcome to our group chat! How is everyone feeling today?',
-            user: { name: 'Mais Masri' },
-            createdAt: new Date(Date.now() - 3600000).toISOString()
-          },
-          {
-            _id: 'demo-2',
-            content: 'I\'m doing well, thanks for asking! 😊',
-            user: { name: 'Sarah Johnson' },
-            createdAt: new Date(Date.now() - 3000000).toISOString()
-          },
-          {
-            _id: 'demo-3',
-            content: 'Feeling motivated today! Ready to tackle the day.',
-            user: { name: 'Mike Chen' },
-            createdAt: new Date(Date.now() - 2400000).toISOString()
-          },
-          {
-            _id: 'demo-4',
-            content: 'Could use some support today. Feeling a bit overwhelmed.',
-            user: { name: 'Emma Williams' },
-            createdAt: new Date(Date.now() - 1800000).toISOString()
-          },
-          {
-            _id: 'demo-5',
-            content: 'Emma, I\'m here for you! Want to talk about what\'s on your mind?',
-            user: { name: 'Mais Masri' },
-            createdAt: new Date(Date.now() - 1200000).toISOString()
-          }
-        ]);
+        // If no groups found, show empty state
+        setGroupInfo(null);
+        setMessages([]);
         setLoading(false);
         return;
       }
@@ -120,52 +78,8 @@ const GroupChatPage = () => {
       } catch (error) {
         console.error('Error loading chat data:', error);
         setError('Failed to load chat. Please try again.');
-        
-        // Fallback to demo data if backend is unavailable
-        setGroupInfo({
-          _id: groupId,
-          name: 'My Personal Group',
-          description: 'Personal mood tracking group',
-          members: [
-            { name: 'Mais Masri' },
-            { name: 'Sarah Johnson' },
-            { name: 'Mike Chen' },
-            { name: 'Emma Williams' }
-          ]
-        });
-        
-        setMessages([
-          {
-            _id: 'demo-1',
-            content: 'Welcome to our group chat! How is everyone feeling today?',
-            user: { name: 'Mais Masri' },
-            createdAt: new Date(Date.now() - 3600000).toISOString()
-          },
-          {
-            _id: 'demo-2',
-            content: 'I\'m doing well, thanks for asking! 😊',
-            user: { name: 'Sarah Johnson' },
-            createdAt: new Date(Date.now() - 3000000).toISOString()
-          },
-          {
-            _id: 'demo-3',
-            content: 'Feeling motivated today! Ready to tackle the day.',
-            user: { name: 'Mike Chen' },
-            createdAt: new Date(Date.now() - 2400000).toISOString()
-          },
-          {
-            _id: 'demo-4',
-            content: 'Could use some support today. Feeling a bit overwhelmed.',
-            user: { name: 'Emma Williams' },
-            createdAt: new Date(Date.now() - 1800000).toISOString()
-          },
-          {
-            _id: 'demo-5',
-            content: 'Emma, I\'m here for you! Want to talk about what\'s on your mind?',
-            user: { name: 'Mais Masri' },
-            createdAt: new Date(Date.now() - 1200000).toISOString()
-          }
-        ]);
+        setGroupInfo(null);
+        setMessages([]);
       } finally {
         setLoading(false);
       }
@@ -261,39 +175,60 @@ const GroupChatPage = () => {
             </div>
           )}
 
-          {/* Demo Data Warning */}
-          {groupId && messages.length > 0 && messages[0]._id === 'demo-1' && (
-            <div className="px-6 py-3">
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-                <div className="flex items-center">
-                  <span className="text-yellow-500 mr-2">⚠️</span>
-                  <span>Backend unavailable - showing demo chat. Check your connection and try again.</span>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <div className="max-w-4xl mx-auto space-y-4">
-              {messages.map((message) => (
+              {messages.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">💬</div>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    {groupInfo ? 'No messages yet' : 'No groups found'}
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {groupInfo 
+                      ? 'Start the conversation! Send a message to begin chatting with your group.'
+                      : 'Create or join a group to start chatting with others.'
+                    }
+                  </p>
+                  {!groupInfo && (
+                    <button 
+                      onClick={() => window.location.href = '/groups'}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Go to Groups
+                    </button>
+                  )}
+                </div>
+              ) : (
+                messages.map((message) => {
+                // Debug logging for Sarah's messages
+                if (message.user.name === 'Sarah Johnson') {
+                  console.log('Sarah message debug:', {
+                    messageUserId: message.user.id,
+                    currentUserId: user?.id,
+                    match: String(message.user.id) === String(user?.id)
+                  });
+                }
+                
+                return (
                 <div
                   key={message._id}
-                  className={`flex ${message.user.name === user?.firstName + ' ' + user?.lastName ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${String(message.user.id) === String(user?.id) ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
                     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.user.name === user?.firstName + ' ' + user?.lastName
+                      String(message.user.id) === String(user?.id)
                         ? 'bg-blue-500 text-white'
                         : 'bg-white text-gray-800 border border-gray-200'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium">
-                        {message.user.name === user?.firstName + ' ' + user?.lastName ? 'You' : message.user.name}
+                        {String(message.user.id) === String(user?.id) ? 'You' : message.user.name}
                       </span>
                       <span className={`text-xs ${
-                        message.user.name === user?.firstName + ' ' + user?.lastName ? 'text-blue-100' : 'text-gray-500'
+                        String(message.user.id) === String(user?.id) ? 'text-blue-100' : 'text-gray-500'
                       }`}>
                         {formatTime(message.createdAt)}
                       </span>
@@ -301,7 +236,9 @@ const GroupChatPage = () => {
                     <p className="text-sm">{message.content}</p>
                   </div>
                 </div>
-              ))}
+                );
+                })
+              )}
               <div ref={messagesEndRef} />
             </div>
           </div>

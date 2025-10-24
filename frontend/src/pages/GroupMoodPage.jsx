@@ -7,7 +7,6 @@ import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import MoodPieChart from '../components/MoodPieChart';
-import ScheduledSessions from '../components/ScheduledSessions';
 import groupService from '../services/groupService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -29,18 +28,7 @@ const GroupMoodPage = () => {
       }
     } catch (error) {
       console.error('Error fetching group moods:', error);
-      // Fallback to demo data if backend is unavailable
-      const sampleMoods = [
-        { _id: '1', value: 5, note: 'Feeling great today!', user: { name: 'Alice' }, createdAt: new Date().toISOString() },
-        { _id: '2', value: 4, note: 'Ready to tackle the day', user: { name: 'Bob' }, createdAt: new Date(Date.now() - 86400000).toISOString() },
-        { _id: '3', value: 3, note: 'Just a regular day', user: { name: 'Charlie' }, createdAt: new Date(Date.now() - 172800000).toISOString() },
-        { _id: '4', value: 2, note: 'Feeling a bit down', user: { name: 'Diana' }, createdAt: new Date(Date.now() - 259200000).toISOString() },
-        { _id: '5', value: 1, note: 'Very stressed lately', user: { name: 'Eve' }, createdAt: new Date(Date.now() - 345600000).toISOString() },
-        { _id: '6', value: 5, note: 'Amazing day!', user: { name: 'Frank' }, createdAt: new Date(Date.now() - 432000000).toISOString() },
-        { _id: '7', value: 4, note: 'Motivated and focused', user: { name: 'Grace' }, createdAt: new Date(Date.now() - 518400000).toISOString() },
-        { _id: '8', value: 3, note: 'Neutral mood', user: { name: 'Henry' }, createdAt: new Date(Date.now() - 604800000).toISOString() },
-      ];
-      setGroupMoods(sampleMoods);
+      setGroupMoods([]);
     } finally {
       setLoading(false);
     }
@@ -56,23 +44,7 @@ const GroupMoodPage = () => {
       }
     } catch (error) {
       console.error('Error fetching group info:', error);
-      // Fallback to demo group info
-      setGroupInfo({
-        _id: groupId,
-        name: 'Demo Group',
-        description: 'Sample group to demonstrate the pie chart functionality',
-        members: [
-          { name: 'Alice' },
-          { name: 'Bob' },
-          { name: 'Charlie' },
-          { name: 'Diana' },
-          { name: 'Eve' },
-          { name: 'Frank' },
-          { name: 'Grace' },
-          { name: 'Henry' }
-        ],
-        createdAt: new Date().toISOString()
-      });
+      setGroupInfo(null);
     }
   }, [groupId]);
 
@@ -95,35 +67,9 @@ const GroupMoodPage = () => {
           console.error('Error fetching groups:', error);
         }
         
-        // If no groups found or error, show demo data
-        const sampleMoods = [
-          { _id: '1', value: 5, note: 'Feeling great today!', user: { name: 'Alice' }, createdAt: new Date().toISOString() },
-          { _id: '2', value: 4, note: 'Ready to tackle the day', user: { name: 'Bob' }, createdAt: new Date(Date.now() - 86400000).toISOString() },
-          { _id: '3', value: 3, note: 'Just a regular day', user: { name: 'Charlie' }, createdAt: new Date(Date.now() - 172800000).toISOString() },
-          { _id: '4', value: 2, note: 'Feeling a bit down', user: { name: 'Diana' }, createdAt: new Date(Date.now() - 259200000).toISOString() },
-          { _id: '5', value: 1, note: 'Very stressed lately', user: { name: 'Eve' }, createdAt: new Date(Date.now() - 345600000).toISOString() },
-          { _id: '6', value: 5, note: 'Amazing day!', user: { name: 'Frank' }, createdAt: new Date(Date.now() - 432000000).toISOString() },
-          { _id: '7', value: 4, note: 'Motivated and focused', user: { name: 'Grace' }, createdAt: new Date(Date.now() - 518400000).toISOString() },
-          { _id: '8', value: 3, note: 'Neutral mood', user: { name: 'Henry' }, createdAt: new Date(Date.now() - 604800000).toISOString() },
-        ];
-        
-        setGroupMoods(sampleMoods);
-        setGroupInfo({
-          _id: 'demo',
-          name: 'Demo Group',
-          description: 'Sample group to demonstrate the pie chart functionality',
-          members: [
-            { name: 'Alice' },
-            { name: 'Bob' },
-            { name: 'Charlie' },
-            { name: 'Diana' },
-            { name: 'Eve' },
-            { name: 'Frank' },
-            { name: 'Grace' },
-            { name: 'Henry' }
-          ],
-          createdAt: new Date().toISOString()
-        });
+        // If no groups found, show empty state
+        setGroupMoods([]);
+        setGroupInfo(null);
         setLoading(false);
       };
       
@@ -160,24 +106,6 @@ const GroupMoodPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
             {groupInfo ? groupInfo.name : 'Group'} Moods
           </h2>
-          
-          {!groupId && (
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
-              <div className="flex items-center">
-                <span className="text-blue-500 mr-2">ℹ️</span>
-                <span>Showing demo data. Create a group to see real mood data.</span>
-              </div>
-            </div>
-          )}
-
-          {groupId && groupMoods.length > 0 && groupMoods[0]._id === '1' && (
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4">
-              <div className="flex items-center">
-                <span className="text-yellow-500 mr-2">⚠️</span>
-                <span>Backend unavailable - showing demo data. Check your connection and try again.</span>
-              </div>
-            </div>
-          )}
 
           {groupInfo && (
             <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
@@ -195,11 +123,27 @@ const GroupMoodPage = () => {
           )}
 
           {groupMoods.length === 0 ? (
-            <div className="text-center py-8 bg-white rounded-lg shadow-sm">
-              <p className="text-gray-500 mb-4">No mood entries found for this group</p>
-              <p className="text-sm text-gray-400">
-                Group members can start sharing their moods to see them here.
+            <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+              <div className="text-6xl mb-4">😊</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                {groupInfo ? 'No mood entries yet' : 'No groups found'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {groupInfo 
+                  ? 'Group members can start sharing their moods to see them here.'
+                  : 'Create or join a group to start tracking moods together.'
+                }
               </p>
+              {!groupInfo && (
+                <div className="space-x-4">
+                  <button 
+                    onClick={() => window.location.href = '/groups'}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Go to Groups
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-6">
@@ -249,10 +193,6 @@ const GroupMoodPage = () => {
                 </div>
               </div>
 
-              {/* Scheduled Sessions */}
-              <div className="mt-8">
-                <ScheduledSessions groupId={groupId} showCreateButton={true} />
-              </div>
 
             </div>
           )}

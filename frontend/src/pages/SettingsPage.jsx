@@ -42,8 +42,8 @@ const SettingsPage = () => {
           ...prev,
           ...response.data
         }));
-        // Update theme context if theme is set in backend
-        if (response.data.theme && response.data.theme !== theme) {
+        // Always sync theme from backend to context
+        if (response.data.theme) {
           changeTheme(response.data.theme);
         }
       }
@@ -62,10 +62,21 @@ const SettingsPage = () => {
     }));
   };
 
-  const handleThemeChange = (newTheme) => {
+  const handleThemeChange = async (newTheme) => {
     console.log('Changing theme to:', newTheme);
     changeTheme(newTheme);
     handleSettingChange('theme', newTheme);
+    
+    // Save theme immediately to backend
+    try {
+      await settingsService.updateSettings({
+        ...settings,
+        theme: newTheme
+      });
+      console.log('Theme saved to backend:', newTheme);
+    } catch (error) {
+      console.error('Error saving theme to backend:', error);
+    }
   };
 
   const handleSaveSettings = async () => {
