@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Alert from './Alert';
 import alertsService from '../services/alertsService';
-import sessionsService from '../services/sessionsService';
 import groupService from '../services/groupService';
 
 const MoodAlerts = ({ groupId, onSupportRequest, showAllGroups = false }) => {
@@ -108,45 +107,6 @@ const MoodAlerts = ({ groupId, onSupportRequest, showAllGroups = false }) => {
     handleMarkAsRead(alert.id);
   };
 
-  const handleScheduleSupportSession = async () => {
-    try {
-      // Get user's groups to determine which group to schedule for
-      const groupsResponse = await groupService.getGroups();
-      
-      if (!groupsResponse.success || groupsResponse.data.length === 0) {
-        alert('No groups found. Please create a group first.');
-        return;
-      }
-
-      // Use the first group (or could show a modal to select group)
-      const targetGroup = groupsResponse.data[0];
-      
-      // Create a quick support session for tomorrow
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(14, 0, 0, 0); // 2 PM tomorrow
-
-      const sessionData = {
-        title: 'Urgent Support Session',
-        description: 'Scheduled support session to address current group needs',
-        scheduledDate: tomorrow.toISOString(),
-        sessionType: 'urgent_support',
-        groupId: targetGroup._id
-      };
-
-      const response = await sessionsService.scheduleSession(sessionData);
-      
-      if (response.success) {
-        alert(`Support session scheduled successfully for ${targetGroup.name}!\n\nDate: ${tomorrow.toLocaleDateString()}\nTime: 2:00 PM\n\nAll group members will be notified.`);
-      } else {
-        throw new Error(response.message || 'Failed to schedule session');
-      }
-
-    } catch (error) {
-      console.error('Error scheduling support session:', error);
-      alert('Failed to schedule support session. Please try again.');
-    }
-  };
 
   const getAlertIcon = (type) => {
     switch (type) {
@@ -209,33 +169,8 @@ const MoodAlerts = ({ groupId, onSupportRequest, showAllGroups = false }) => {
             </span>
           )}
         </div>
-        {urgentAlerts.length > 0 && (
-          <button
-            onClick={handleScheduleSupportSession}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
-          >
-            <i className="fas fa-exclamation-triangle mr-2"></i>
-            Schedule Support Session
-          </button>
-        )}
       </div>
 
-      {/* Urgent Alerts Banner */}
-      {urgentAlerts.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <i className="fas fa-exclamation-triangle text-red-500 mr-3"></i>
-            <div>
-              <h4 className="font-semibold text-red-800">
-                {urgentAlerts.length} urgent alert{urgentAlerts.length > 1 ? 's' : ''} need attention
-              </h4>
-              <p className="text-red-600 text-sm">
-                Someone in your group needs immediate support
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Alerts List */}
       <div className="space-y-3">
@@ -316,11 +251,11 @@ const MoodAlerts = ({ groupId, onSupportRequest, showAllGroups = false }) => {
                   
                   {alert.type === 'group_mood_drop' && (
                     <button
-                      onClick={handleScheduleSupportSession}
+                      onClick={() => window.location.href = '/group-chat'}
                       className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600 transition-colors"
                     >
-                      <i className="fas fa-users mr-1"></i>
-                      Group Session
+                      <i className="fas fa-comments mr-1"></i>
+                      Group Chat
                     </button>
                   )}
                 </div>
