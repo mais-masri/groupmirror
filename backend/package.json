@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "start:mock": "node mock-server.js",
     "start:open": "npm run build && node dist/server.js & start http://localhost:3001/api/docs",
-    "seed": "ts-node src/scripts/seed.ts",
+    "clear-demo": "ts-node src/scripts/clear-demo-data.ts",
     "health": "powershell -NoProfile -Command \"(Invoke-WebRequest -UseBasicParsing http://localhost:3001/api/health).StatusCode\"",
     "kill:3001": "kill-port 3001"
   },
@@ -29,6 +29,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "groupmirror-workspace": "file:..",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
