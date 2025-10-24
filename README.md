@@ -1,131 +1,172 @@
-# ✨ GroupMirror - Your Personal & Collaborative Mood Tracker ✨
+# GroupMirror
 
-Developed under the supervision of **Prof. Roi Poranne** at the University of Haifa 🎓
-
----
-
-## 🚀 Project Overview
-
-**GroupMirror** is a modern web-based mood tracking platform that connects individuals and groups for collaborative mental health support. Track your daily moods, create supportive communities, and foster emotional well-being together.
+This project was built for my coursework at University of Haifa under the supervision of Prof. Roi Poranne.
 
 ---
 
-## 🌟 Key Features
+**GroupMirror - Collaborative Wellness Platform**
 
-### 👤 **User Management**
-- 🔐 Secure authentication with comprehensive validation
-- 👋 Personalized dashboard with welcome messages
-- ✏️ Profile management (name, username, email)
-- 📊 Personal mood statistics and history
+An innovative digital platform that enables communities to monitor emotional health and build stronger connections through shared mood experiences.
 
-### 😊 **Mood Tracking**
-- 📅 Calendar-based interface for logging moods
-- 🎭 Multiple mood types (Happy, Motivated, Neutral, Sad, Stressed)
-- 📝 Detailed entries with descriptions and levels (1-5 scale)
-- 📈 Visual history with yearly, monthly, and daily views
-- 🚫 Smart validation preventing future date entries
+## Overview
 
-### 🤝 **Group Collaboration**
-- 🏗️ Create private groups with unique invite codes
-- 🔍 Real-time search functionality
-- 👥 Member management and group statistics
-- 💬 Group chat for emotional support
-- 📊 Live mood analytics and collective insights
+GroupMirror allows users to track their daily moods, join groups with friends or colleagues, and share their emotional state in a supportive environment. The application provides insights into group mood patterns and facilitates communication through group chat features.
 
-### ⚙️ **Customization**
-- 🔔 Notification management (push, email, group alerts)
-- 🎨 Light ☀️ and Dark 🌙 theme support
-- 🔒 Privacy controls and mood sharing settings
-- ⏰ Customizable reminder preferences
+## Features
 
----
+- **Mood Tracking**: Record daily moods with ratings and notes
+  - 😊 Happy (Level 5) - Feeling great and positive
+  - 🌱 Motivated (Level 4) - Ready to tackle challenges  
+  - ⚪ Neutral (Level 3) - Balanced and steady
+  - 🌧️ Sad (Level 2) - Feeling down or low
+  - 🔥 Stressed (Level 1) - Overwhelmed or anxious
+- **Group Management**: Create or join groups with invite codes
+- **Group Chat**: Communicate with group members
+- **Mood Analytics**: View group mood distributions and trends
+- **User Profiles**: Manage personal information and settings
+- **Theme Support**: Light and dark mode options
 
-## 🛠️ Technologies
+## Tech Stack
 
-| Frontend | Backend | Database |
-|----------|---------|----------|
-| ⚛️ React.js | 🟢 Node.js | 🍃 MongoDB |
-| 🎨 Tailwind CSS | 🚀 Express.js | 📊 Mongoose |
-| 📱 Responsive Design | 📘 TypeScript | 🔑 JWT Authentication |
+**Frontend:**
+- React 18
+- Tailwind CSS
+- React Router
 
----
+**Backend:**
+- Node.js
+- Express.js
+- TypeScript
+- MongoDB with Mongoose
+- JWT Authentication
 
-## 🚀 Quick Start
+## Installation
 
-1. **Clone & Setup Backend**
-   ```bash
-   git clone [repository_url]
-   cd groupmirrorproject/backend
-   npm install
-   cp .env.example .env  # Configure MongoDB URI and JWT_SECRET
-   npm run dev
-   ```
+### Prerequisites
+- Node.js (v16 or higher)
+- MongoDB database
+- npm or yarn
 
-2. **Setup Frontend**
-   ```bash
-   cd ../src
-   npm install
-   cp .env.example .env  # Set REACT_APP_API_URL=http://localhost:3001
-   npm start
-   ```
+### Setup
 
-3. **Access Application**
-   - Frontend: http://localhost:3000
-   - Backend: http://localhost:3001
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd groupmirrorproject
+```
 
----
+2. Install dependencies:
+```bash
+npm install
+```
 
-## 📁 Project Structure
+3. Set up environment variables:
+Create a `.env` file in the backend directory:
+```
+MONGODB_URI=mongodb://localhost:27017/groupmirror
+JWT_SECRET=your-secret-key
+PORT=3001
+```
+
+4. Start the development servers:
+```bash
+npm run dev
+```
+
+This will start both frontend (port 3000) and backend (port 3001) servers.
+
+## Usage
+
+1. **Sign Up**: Create a new account with email and password
+2. **Create Group**: Set up a group and get an invite code
+3. **Join Group**: Use invite codes to join existing groups
+4. **Track Moods**: Record daily mood entries
+5. **Group Chat**: Communicate with group members
+6. **View Analytics**: Check group mood patterns and statistics
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+
+### Groups
+- `GET /api/groups` - Get user's groups
+- `POST /api/groups` - Create new group
+- `POST /api/groups/join` - Join group with invite code
+
+### Moods
+- `GET /api/moods` - Get user's mood entries
+- `POST /api/moods` - Create new mood entry
+
+### Chat
+- `GET /api/chat/:groupId` - Get group messages
+- `POST /api/chat/:groupId` - Send message to group
+
+## Database Schema
+
+### User
+- Basic profile information
+- Authentication credentials
+- Account settings
+
+### Group
+- Group name and description
+- Admin and member references
+- Invite codes
+
+### Mood
+- User reference
+- Mood level (1-5)
+- Mood type and description
+- Date timestamp
+
+### Message
+- Group and user references
+- Message content and type
+- Timestamps
+
+## Development
+
+### Available Scripts
+
+**Backend:**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run clear-demo` - Clear demo data
+
+**Frontend:**
+- `npm start` - Start React development server
+- `npm run build` - Build for production
+
+### Project Structure
 
 ```
 groupmirrorproject/
-├── 📁 backend/          # Node.js API server
-│   ├── 📁 src/routes/   # API endpoints
-│   ├── 📁 src/models/   # Database schemas
-│   └── 📁 src/middleware/ # Auth & validation
-├── 📁 src/              # React frontend
-│   ├── 📁 pages/        # Main application pages
-│   ├── 📁 components/   # Reusable UI components
-│   └── 📁 services/     # API service layers
-└── 📄 README.md
+├── backend/
+│   ├── src/
+│   │   ├── models/          # Database models
+│   │   ├── routes/          # API routes
+│   │   ├── middleware/      # Authentication & validation
+│   │   ├── services/        # Business logic
+│   │   └── utils/           # Helper functions
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   ├── pages/           # Page components
+│   │   ├── services/        # API services
+│   │   └── contexts/        # React contexts
+└── README.md
 ```
 
----
+## Contributing
 
-## 🔧 Available Scripts
-
-**Backend:** `npm run dev` | `npm run build` | `npm run start`  
-**Frontend:** `npm start` | `npm run build` | `npm test`
-
----
-
-## 🌐 API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/register` | POST | User registration |
-| `/api/auth/login` | POST | User login |
-| `/api/moods` | GET/POST | Mood entries |
-| `/api/groups` | GET/POST | Group management |
-| `/api/profile` | GET/PUT | Profile management |
-| `/api/settings` | GET/PUT | Settings management |
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ---
 
-## 🎯 Key Achievements
-
-- ✅ **Real-time Mood Tracking** with calendar interface
-- ✅ **Group Collaboration** with invite codes and search
-- ✅ **Theme Management** with light/dark mode
-- ✅ **Personalized Experience** with user-specific content
-- ✅ **Comprehensive Validation** on frontend and backend
-- ✅ **Database Integration** with MongoDB and Mongoose
-- ✅ **Secure Authentication** with JWT and bcrypt
-
----
-
-<div align="center">
-
-**🌟 Developed with passion for better mental health tracking 🌟**
-
-</div>
+*"Taking care of your mental health is not a luxury, it's a necessity."* ❤️
