@@ -61,12 +61,12 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the backend directory:
-```
-MONGODB_URI=mongodb://localhost:27017/groupmirror
-JWT_SECRET=your-secret-key
-PORT=3001
-```
+   - Copy the environment template: `cp .env.example .env`
+   - Edit the `.env` file with your actual credentials:
+     - Replace `<your-username>` and `<your-password>` with your MongoDB credentials
+     - Replace `your-super-secret-jwt-key-change-this-in-production` with a strong JWT secret
+     - Adjust other settings as needed
+   - **Important**: Never commit the `.env` file to version control
 
 4. Start the development servers:
 ```bash
