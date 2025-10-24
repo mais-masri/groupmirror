@@ -91,10 +91,10 @@ router.get('/', authenticateToken, async (req, res) => {
       })
     );
 
-    res.json({ success: true, data: groupsWithMoodCount });
+    return res.json({ success: true, data: groupsWithMoodCount });
   } catch (error: any) {
     console.error('Error fetching groups:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch groups', error: error.message });
+    return res.status(500).json({ success: false, message: 'Failed to fetch groups', error: error.message });
   }
 });
 
@@ -133,10 +133,10 @@ router.get('/:groupId', authenticateToken, async (req, res) => {
       moodEntries: moodCount
     };
 
-    res.json({ success: true, data: groupWithMoodCount });
+    return res.json({ success: true, data: groupWithMoodCount });
   } catch (error: any) {
     console.error('Error fetching group:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch group', error: error.message });
+    return res.status(500).json({ success: false, message: 'Failed to fetch group', error: error.message });
   }
 });
 
@@ -148,6 +148,19 @@ router.post('/', authenticateToken, validateRequest(createGroupSchema), async (r
     
     if (!userId) {
       return res.status(401).json({ success: false, message: 'User ID not found in token' });
+    }
+
+    // Check if user is already in another group
+    const existingGroup = await Group.findOne({
+      members: userId,
+      isActive: true
+    });
+
+    if (existingGroup) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You can only be in one group at a time. Please leave your current group first.' 
+      });
     }
 
     // Generate unique invite code
@@ -168,14 +181,14 @@ router.post('/', authenticateToken, validateRequest(createGroupSchema), async (r
       .populate('adminId', 'firstName lastName username')
       .populate('members', 'firstName lastName username');
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Group created successfully',
       data: populatedGroup
     });
   } catch (error: any) {
     console.error('Error creating group:', error);
-    res.status(500).json({ success: false, message: 'Failed to create group', error: error.message });
+    return res.status(500).json({ success: false, message: 'Failed to create group', error: error.message });
   }
 });
 
@@ -203,6 +216,19 @@ router.post('/join', authenticateToken, validateRequest(joinGroupSchema), async 
       return res.status(400).json({ success: false, message: 'You are already a member of this group' });
     }
 
+    // Check if user is already in another group
+    const existingGroup = await Group.findOne({
+      members: userId,
+      isActive: true
+    });
+
+    if (existingGroup) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You can only be in one group at a time. Please leave your current group first.' 
+      });
+    }
+
     // Add user to group
     group.members.push(userId as any);
     await group.save();
@@ -212,14 +238,60 @@ router.post('/join', authenticateToken, validateRequest(joinGroupSchema), async 
       .populate('adminId', 'firstName lastName username')
       .populate('members', 'firstName lastName username');
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Successfully joined group',
       data: populatedGroup
     });
   } catch (error: any) {
     console.error('Error joining group:', error);
-    res.status(500).json({ success: false, message: 'Failed to join group', error: error.message });
+    return res.status(500).json({ success: false, message: 'Failed to join group', error: error.message });
+  }
+});
+
+// POST leave group
+router.post('/:groupId/leave', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { groupId } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User ID not found in token' });
+    }
+
+    const group = await Group.findOne({
+      _id: groupId,
+      members: userId,
+      isActive: true
+    });
+
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found or you are not a member' });
+    }
+
+    // Check if user is the admin
+    if (group.adminId.toString() === userId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Group admin cannot leave the group. Transfer admin rights or delete the group instead.' 
+      });
+    }
+
+    // Remove user from group
+    group.members = group.members.filter(member => member.toString() !== userId);
+    await group.save();
+
+    return res.json({
+      success: true,
+      message: 'Successfully left the group',
+      data: {
+        groupId: group._id,
+        groupName: group.name
+      }
+    });
+  } catch (error: any) {
+    console.error('Error leaving group:', error);
+    return res.status(500).json({ success: false, message: 'Failed to leave group', error: error.message });
   }
 });
 
@@ -278,14 +350,14 @@ router.get('/:groupId/moods', authenticateToken, async (req, res) => {
       moodType: mood.moodType
     }));
 
-    res.json({
+    return res.json({
       success: true,
       data: transformedMoods,
       count: transformedMoods.length
     });
   } catch (error: any) {
     console.error('Error fetching group moods:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch group moods', error: error.message });
+    return res.status(500).json({ success: false, message: 'Failed to fetch group moods', error: error.message });
   }
 });
 
@@ -322,7 +394,7 @@ router.get('/:groupId/stats', authenticateToken, async (req, res) => {
       userId: { $in: group.members }
     }).sort({ createdAt: -1 });
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         memberCount: group.members.length,
@@ -332,7 +404,7 @@ router.get('/:groupId/stats', authenticateToken, async (req, res) => {
     });
   } catch (error: any) {
     console.error('Error fetching group stats:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch group stats', error: error.message });
+    return res.status(500).json({ success: false, message: 'Failed to fetch group stats', error: error.message });
   }
 });
 

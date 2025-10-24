@@ -49,6 +49,17 @@ class GroupService {
     }
   }
 
+  // Leave group
+  async leaveGroup(groupId) {
+    try {
+      const response = await api.post(`/api/groups/${groupId}/leave`);
+      return response.data;
+    } catch (error) {
+      console.error('[GroupService] Error leaving group:', error);
+      throw error;
+    }
+  }
+
   // Get group statistics
   async getGroupStats(groupId) {
     try {

@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import sessionsService from '../services/sessionsService';
 
 const ScheduledSessions = ({ groupId }) => {
   const { user } = useAuth();
@@ -18,31 +19,66 @@ const ScheduledSessions = ({ groupId }) => {
     try {
       setLoading(true);
       
-      // Simple mock data - replace with real API when ready
+      if (groupId) {
+        // Fetch real sessions from backend API
+        const response = await sessionsService.getGroupSessions(groupId);
+        if (response.success) {
+          // Transform API data to match component expectations
+          const transformedSessions = response.data.map(session => ({
+            id: session._id,
+            title: session.title,
+            description: session.description,
+            scheduledDate: new Date(session.scheduledDate),
+            participants: session.participants,
+            status: session.status
+          }));
+          setSessions(transformedSessions);
+        } else {
+          throw new Error(response.message || 'Failed to load sessions');
+        }
+      } else {
+        // Fallback to mock data if no groupId
       const mockSessions = [
         {
           id: 1,
           title: "Weekly Check-in",
           description: "Let's see how everyone is doing this week",
           scheduledDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-          participants: 3,
+            participants: 3,
           status: 'scheduled'
         },
         {
           id: 2,
-          title: "Mood Review Session", 
+          title: "Mood Review Session",
           description: "Review our mood patterns and support each other",
           scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Next week
-          participants: 3,
+            participants: 3,
           status: 'scheduled'
-        }
-      ];
-      
+          }
+        ];
+        
       setSessions(mockSessions);
+      }
     } catch (error) {
       console.error('Error loading sessions:', error);
+      // Fallback to empty array if API fails
+      setSessions([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleJoinSession = async (sessionId) => {
+    try {
+      const response = await sessionsService.joinSession(sessionId);
+      if (response.success) {
+        alert('Successfully joined the session! You will be notified when it starts.');
+      } else {
+        throw new Error(response.message || 'Failed to join session');
+      }
+    } catch (error) {
+      console.error('Error joining session:', error);
+      alert('Failed to join session. Please try again.');
     }
   };
 
@@ -90,8 +126,8 @@ const ScheduledSessions = ({ groupId }) => {
           <div className="text-gray-400 text-4xl mb-4">📅</div>
           <p className="text-gray-500">No sessions scheduled</p>
           <p className="text-sm text-gray-400 mt-1">Group sessions will appear here</p>
-        </div>
-      ) : (
+          </div>
+        ) : (
         <div className="space-y-4">
           {sessions.map((session) => (
             <div key={session.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -111,12 +147,15 @@ const ScheduledSessions = ({ groupId }) => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(session.status)}`}>
                     {session.status}
-                  </span>
-                  <button className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors">
+                        </span>
+                  <button 
+                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors"
+                    onClick={() => handleJoinSession(session.id)}
+                  >
                     Join
                   </button>
                 </div>
@@ -124,7 +163,7 @@ const ScheduledSessions = ({ groupId }) => {
             </div>
           ))}
         </div>
-      )}
+        )}
     </div>
   );
 };

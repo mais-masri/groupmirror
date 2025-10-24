@@ -51,6 +51,12 @@ const GroupsPage = () => {
     e.preventDefault();
     if (!groupName.trim()) return;
 
+    // Check if user already has a group
+    if (userGroups.length > 0) {
+      setError('You can only be in one group at a time. Please leave your current group first.');
+      return;
+    }
+
     try {
       setSubmitting(true);
       setError('');
@@ -78,6 +84,12 @@ const GroupsPage = () => {
     e.preventDefault();
     if (!joinCode.trim()) return;
 
+    // Check if user already has a group
+    if (userGroups.length > 0) {
+      setError('You can only be in one group at a time. Please leave your current group first.');
+      return;
+    }
+
     try {
       setSubmitting(true);
       setError('');
@@ -92,6 +104,31 @@ const GroupsPage = () => {
       await loadData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to join group');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLeaveGroup = async (groupId) => {
+    if (!window.confirm('Are you sure you want to leave this group? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError('');
+      
+      const response = await groupService.leaveGroup(groupId);
+      
+      if (response.success) {
+        setSuccess('Successfully left the group');
+        loadData(); // Reload groups
+      } else {
+        setError(response.message || 'Failed to leave group');
+      }
+    } catch (err) {
+      console.error('Error leaving group:', err);
+      setError('Failed to leave group. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -132,18 +169,28 @@ const GroupsPage = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-              >
-                Create Group
-              </button>
-              <button 
-                onClick={() => setShowJoinForm(true)}
-                className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-teal-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-              >
-                Join Group
-              </button>
+              {userGroups.length === 0 && (
+                <>
+                  <button
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                  >
+                    Create Group
+                  </button>
+                  <button 
+                    onClick={() => setShowJoinForm(true)}
+                    className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-teal-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                  >
+                    Join Group
+                  </button>
+                </>
+              )}
+              {userGroups.length > 0 && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  You can only be in one group at a time
+                </div>
+              )}
             </div>
           </div>
 
@@ -305,7 +352,7 @@ const GroupsPage = () => {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {searchTerm ? `No groups match "${searchTerm}"` : 'Join or create a group to start your mental health journey with others!'}
               </p>
-              {!searchTerm && (
+              {!searchTerm && userGroups.length === 0 && (
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={() => setShowCreateForm(true)}
@@ -411,6 +458,13 @@ const GroupsPage = () => {
                     >
                       <i className="fas fa-comments mr-2"></i>
                       Open Group Chat
+                    </button>
+                    <button
+                      onClick={() => handleLeaveGroup(group._id)}
+                      className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                    >
+                      <i className="fas fa-sign-out-alt mr-2"></i>
+                      Leave Group
                     </button>
                   </div>
                   

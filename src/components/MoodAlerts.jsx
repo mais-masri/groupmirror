@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Alert from './Alert';
+import alertsService from '../services/alertsService';
+import sessionsService from '../services/sessionsService';
+import groupService from '../services/groupService';
 
-const MoodAlerts = ({ groupId, onSupportRequest }) => {
+const MoodAlerts = ({ groupId, onSupportRequest, showAllGroups = false }) => {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,53 +20,63 @@ const MoodAlerts = ({ groupId, onSupportRequest }) => {
   const loadMoodAlerts = async () => {
     try {
       setLoading(true);
-      // Mock data for now - replace with actual API call
-      const mockAlerts = [
-        {
-          id: 1,
-          type: 'low_mood',
-          userId: 'user1',
-          userName: 'Sarah',
-          message: 'Sarah is feeling down (2/5). She might need some support.',
-          mood: 2,
-          timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-          isRead: false,
-          priority: 'high'
-        },
-        {
-          id: 2,
-          type: 'missed_check_in',
-          userId: 'user2',
-          userName: 'Mike',
-          message: "Mike hasn't logged his mood in 3 days. Check in with him?",
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-          isRead: false,
-          priority: 'medium'
-        },
-        {
-          id: 3,
-          type: 'group_mood_drop',
-          groupId: groupId,
-          message: 'Group mood has dropped significantly. Consider a support session.',
-          averageMood: 2.3,
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-          isRead: true,
-          priority: 'high'
-        },
-        {
-          id: 4,
-          type: 'support_request',
-          userId: 'user1',
-          userName: 'Sarah',
-          message: 'Sarah is requesting emotional support.',
-          timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-          isRead: false,
-          priority: 'urgent'
+      
+      if (showAllGroups) {
+        // Fetch real alerts from backend API
+        const response = await alertsService.getMoodAlerts();
+        if (response.success) {
+          setAlerts(response.data);
+        } else {
+          throw new Error(response.message || 'Failed to load alerts');
         }
-      ];
-      setAlerts(mockAlerts);
-    } catch (err) {
-      console.error('Error loading mood alerts:', err);
+      } else {
+        // For specific group, still use mock data for now
+        const mockAlerts = [
+          {
+            id: 1,
+            type: 'low_mood',
+            userId: 'user1',
+            userName: 'Sarah',
+            message: 'Sarah is feeling down (2/5). She might need some support.',
+            mood: 2,
+            timestamp: new Date(Date.now() - 10 * 60 * 1000),
+            isRead: false,
+            priority: 'high',
+            groupId: groupId || 'current-group',
+            groupName: 'My Personal Group'
+          },
+          {
+            id: 2,
+            type: 'missed_check_in',
+            userId: 'user2',
+            userName: 'Mike',
+            message: "Mike hasn't logged his mood in 3 days. Check in with him?",
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+            isRead: false,
+            priority: 'medium',
+            groupId: groupId || 'current-group',
+            groupName: 'My Personal Group'
+          },
+          {
+            id: 3,
+            type: 'support_request',
+            userId: 'user1',
+            userName: 'Sarah',
+            message: 'Sarah is requesting emotional support.',
+            timestamp: new Date(Date.now() - 5 * 60 * 1000),
+            isRead: false,
+            priority: 'urgent',
+            groupId: groupId || 'current-group',
+            groupName: 'My Personal Group'
+          }
+        ];
+        
+        setAlerts(mockAlerts);
+      }
+    } catch (error) {
+      console.error('Error loading mood alerts:', error);
+      // Fallback to empty array if API fails
+      setAlerts([]);
     } finally {
       setLoading(false);
     }
@@ -95,9 +108,44 @@ const MoodAlerts = ({ groupId, onSupportRequest }) => {
     handleMarkAsRead(alert.id);
   };
 
-  const handleScheduleSupportSession = () => {
-    // Navigate to Group Mood page where ScheduledSessions component is
-    window.location.href = '/group-mood';
+  const handleScheduleSupportSession = async () => {
+    try {
+      // Get user's groups to determine which group to schedule for
+      const groupsResponse = await groupService.getGroups();
+      
+      if (!groupsResponse.success || groupsResponse.data.length === 0) {
+        alert('No groups found. Please create a group first.');
+        return;
+      }
+
+      // Use the first group (or could show a modal to select group)
+      const targetGroup = groupsResponse.data[0];
+      
+      // Create a quick support session for tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(14, 0, 0, 0); // 2 PM tomorrow
+
+      const sessionData = {
+        title: 'Urgent Support Session',
+        description: 'Scheduled support session to address current group needs',
+        scheduledDate: tomorrow.toISOString(),
+        sessionType: 'urgent_support',
+        groupId: targetGroup._id
+      };
+
+      const response = await sessionsService.scheduleSession(sessionData);
+      
+      if (response.success) {
+        alert(`Support session scheduled successfully for ${targetGroup.name}!\n\nDate: ${tomorrow.toLocaleDateString()}\nTime: 2:00 PM\n\nAll group members will be notified.`);
+      } else {
+        throw new Error(response.message || 'Failed to schedule session');
+      }
+
+    } catch (error) {
+      console.error('Error scheduling support session:', error);
+      alert('Failed to schedule support session. Please try again.');
+    }
   };
 
   const getAlertIcon = (type) => {
@@ -131,8 +179,9 @@ const MoodAlerts = ({ groupId, onSupportRequest }) => {
     return `${days}d ago`;
   };
 
-  const unreadCount = alerts.filter(alert => !alert.isRead).length;
-  const urgentAlerts = alerts.filter(alert => alert.priority === 'urgent' && !alert.isRead);
+  const top3Alerts = alerts.slice(0, 3);
+  const unreadCount = top3Alerts.filter(alert => !alert.isRead).length;
+  const urgentAlerts = top3Alerts.filter(alert => alert.priority === 'urgent' && !alert.isRead);
 
   if (loading) {
     return (
@@ -190,14 +239,14 @@ const MoodAlerts = ({ groupId, onSupportRequest }) => {
 
       {/* Alerts List */}
       <div className="space-y-3">
-        {alerts.length === 0 ? (
+        {top3Alerts.length === 0 ? (
           <div className="text-center py-8 bg-white rounded-lg border">
             <div className="text-4xl mb-4">✅</div>
             <h4 className="text-lg font-semibold text-gray-700 mb-2">All good!</h4>
             <p className="text-gray-500">No alerts at the moment. Your group is doing well!</p>
           </div>
         ) : (
-          alerts.map((alert) => (
+          top3Alerts.map((alert) => (
             <div
               key={alert.id}
               className={`bg-white border rounded-lg p-4 transition-all ${
