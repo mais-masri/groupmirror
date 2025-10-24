@@ -1,55 +1,15 @@
 {
-  "name": "myproject",
-  "version": "0.1.0",
+  "name": "groupmirror-workspace",
+  "version": "1.0.0",
   "private": true,
-  "dependencies": {
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.12.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.30.1",
-    "react-scripts": "^5.0.1",
-    "web-vitals": "^2.1.4"
-  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "preview": "serve -s build -l 5173",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "kill:ports": "kill-port 3000 3001",
-    "dev": "npm-run-all -p dev:backend dev:frontend",
-    "dev:backend": "npm --prefix backend run kill:3001 && npm --prefix backend run dev",
-    "dev:frontend": "cross-env PORT=3000 npm start"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm --prefix frontend start",
+    "dev:backend": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "install:all": "npm install && npm --prefix frontend install && npm --prefix backend install"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.21",
-    "cross-env": "^7.0.3",
-    "kill-port": "^2.0.1",
-    "npm-run-all": "^4.1.5",
-    "postcss": "^8.5.6",
-    "serve": "^14.2.1",
-    "tailwindcss": "^3.3.2"
+    "concurrently": "^8.2.2"
   }
 }
