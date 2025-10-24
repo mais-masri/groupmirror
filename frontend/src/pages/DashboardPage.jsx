@@ -71,7 +71,7 @@ const DashboardPage = () => {
     }
   };
 
-  // Generate AI-powered motivational message
+  // Generate motivational message based on mood data
   const generateMotivationalMessage = (todaysMood, moodHistory, groupsData) => {
     const messages = [];
     
