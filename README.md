@@ -51,13 +51,19 @@ GroupMirror allows users to track their daily moods, join groups with friends or
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd groupmirrorproject
+git clone https://github.com/mais-masri/groupmirror.git
+cd groupmirror
 ```
 
 2. Install dependencies:
 ```bash
+# Install all dependencies (root, frontend, and backend)
+npm run install:all
+
+# Or install them separately:
 npm install
+npm --prefix frontend install
+npm --prefix backend install
 ```
 
 3. Set up environment variables:
