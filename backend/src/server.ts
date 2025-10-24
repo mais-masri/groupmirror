@@ -9,7 +9,6 @@ import settingsRoutes from './routes/settings';
 import groupRoutes from './routes/groups';
 import chatRoutes from './routes/chat';
 import alertsRoutes from './routes/alerts';
-import sessionsRoutes from './routes/sessions';
 // MongoDB connection
 async function connectDB() {
   const uri = process.env.MONGODB_URI;
@@ -72,7 +71,6 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/alerts', alertsRoutes);
-app.use('/api/sessions', sessionsRoutes);
 
 // Profile endpoints
 app.get('/api/profile', (req, res) => {
@@ -138,7 +136,8 @@ app.get('/api/docs', (req, res) => {
       },
       moods: {
         'GET /api/moods': 'Get user mood entries',
-        'POST /api/moods': 'Create new mood entry'
+        'POST /api/moods': 'Create new mood entry',
+        'DELETE /api/moods/:id': 'Delete a mood entry'
       },
       groups: {
         'GET /api/groups': 'Get user groups',
@@ -155,11 +154,6 @@ app.get('/api/docs', (req, res) => {
       },
       alerts: {
         'GET /api/alerts': 'Get real mood alerts based on actual data'
-      },
-      sessions: {
-        'POST /api/sessions': 'Schedule a new support session',
-        'GET /api/sessions/:groupId': 'Get sessions for a group',
-        'POST /api/sessions/:sessionId/join': 'Join a scheduled session'
       },
       profile: {
         'GET /api/profile': 'Get user profile',
